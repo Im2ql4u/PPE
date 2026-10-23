@@ -152,7 +152,17 @@ def main() -> None:
             if not tl_a or not tl_b:
                 continue
             len_a, len_b = tl_a[-1][1], tl_b[-1][1]
-            overlap, agree, diffs = compare(tl_a, tl_b, meas_a, meas_b)
+            # Files sometimes number measures differently (anacrusis as m0 vs m1). Try a
+            # measure-number shift of -1/0/+1 and keep the best by chord agreement; the shift
+            # is recorded. Picking the max of 3 biases agreement up slightly (documented).
+            best = None
+            for shift in (0, -1, 1):
+                mb = {k + shift: v for k, v in meas_b.items()}
+                res = compare(tl_a, tl_b, meas_a, mb)
+                score = res[1]["chord_pcs"] / res[0] if res[0] else 0
+                if best is None or score > best[0] + 1e-9:
+                    best = (score, shift, res)
+            _, shift, (overlap, agree, diffs) = best
             an_a, an_b = analyst(main_f), analyst(other)
             rows.append({
                 "piece": str(rel).replace("\\", "/"),
@@ -163,6 +173,7 @@ def main() -> None:
                 "len_a": len_a,
                 "len_b": len_b,
                 "length_ratio": min(len_a, len_b) / max(len_a, len_b),
+                "measure_shift": shift,
                 "overlap": overlap,
                 **{k: (v / overlap if overlap else 0.0) for k, v in agree.items()},
             })

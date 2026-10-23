@@ -6,7 +6,7 @@
 >
 > Caveat on method: several vendor marketing pages returned empty shells or HTTP 403 to the fetch tool (Skoove, Playground Sessions, Yousician help centre). Where that happened, claims rest on search-result snippets of the official page or on secondary reviews and are tagged accordingly. Forum consensus (r/piano, Piano World, Pianostreet) could not be sampled directly this session; statements about "community consensus" are therefore weaker than they look and are marked [reported] at best.
 
-(Draft v1, written early because of interruptions; extended below.)
+Companion notes in this folder: `performance-capture-analysis.md` (alignment, score following and capture in depth), `pedagogy-evidence.md`, `cognition-and-models.md`. This note covers the product and project landscape only.
 
 ---
 
@@ -195,16 +195,144 @@ These are covered in more depth in the companion notes (pedagogy-evidence.md, co
 
 ---
 
-## 6. Open-source projects close to the concept
+## 6. Open-source projects and research prototypes close to the concept
 
-(Section in progress — see below.)
+No single open-source project combines **interactive engraved score + harmonic/structural analysis + live MIDI keyboard + performance analytics**. The pieces exist separately, mostly at small scale. (Alignment/following libraries are covered in depth in the companion note `performance-capture-analysis.md`; here they are listed only for landscape completeness.)
+
+### 6.1 Practice front-ends (browser / desktop)
+
+| Project | What it is | Stack / licence | Maturity | Verdict |
+|---|---|---|---|---|
+| [ftrain/sightreading](https://github.com/ftrain/sightreading) | Web sight-reading trainer: 23 procedurally generated levels (circle of fifths, rhythms), RH→LH→both, mastery gating, tempo ramps from 30 BPM; MIDI correctness colouring (teal/red) | Vite + TypeScript + **Verovio** (MusicXML→SVG) + Tone.js + Web MIDI; Playwright/Vitest tests; LGPL-3.0 | Small (≈34 commits, 15 stars) | **Reuse as reference** — almost exactly our intended rendering + input stack [confirmed: repo] |
+| [huytd/sightread](https://github.com/huytd/sightread) (fork of sightread/sightread; [sightread.dev](https://sightread.dev)) | Free web app "for learning to play Piano", falling-notes oriented, MIDI recommended | Next.js + TypeScript | Small fork; upstream more active [reported] | Learn |
+| [PianoBooster](https://github.com/pianobooster/PianoBooster) | MIDI-file player that shows notation and *waits/follows* the player; can play one hand | C++/Qt, FluidSynth; GPL | Mature, old | Learn |
+| [Neothesia](https://github.com/PolyMeilex/Neothesia) | Open-source Synthesia (falling notes from MIDI) | Rust, wgpu | Active [reported] | Ignore (falling notes) |
+| Clementi | Desktop MIDI-file trainer with wait mode ([linuxaudio wiki](https://wiki.linuxaudio.org/_export/xhtml/apps/all/clementi)) | — | Small | Ignore |
+| [Toccata](https://github.com/ange-yaghi/toccata) | MIDI analyser: bar recognition, average jitter and deviation from "perfect" time, inferred tempo; dynamics metrics and a per-piece MIDI database *planned* | C++ (inferred) | WIP since 2021, 64 commits | **Learn** — evidence that even timing analytics are unfinished in OSS [confirmed: repo] |
+| [Czerny](https://jtauber.com/blog/2010/07/19/czerny/) (James Tauber, 2010) | Python: aligns performance to score with Needleman–Wunsch; reports timing and velocity deviations, not just wrong notes; Core MIDI input | Python | Dormant prototype | Learn (early precedent) |
+| [TonnetzViz](https://github.com/cifkao/tonnetz-viz) | Live Tonnetz of Web MIDI input | JS | Stable small | Reuse |
+| [liotier/AkaiMPC](https://github.com/liotier/AkaiMPC) | Browser app with Roman-numeral analysis, keyboard diagrams, Web MIDI | Vanilla JS | Small | Learn [reported] |
+| [music21j](https://www.npmjs.com/package/music21j-port) | JS port of music21 with Web MIDI, keyboards, metronome | JS | Theory features ≈ music21 c. 2012 | Possibly reuse for client-side theory objects [reported] |
+| Chrome Music Lab | Experiments on Web Audio/Web MIDI/Tone.js; source published by Google ([developers.googleblog.com](https://developers.googleblog.com/introducing-chrome-music-lab/)) | JS, Apache-2.0 [reported] | Stable | Learn (aesthetic) |
+| [PianoPlayer](https://docsearch.algolia.com/mcp/docs/repo/marcomusy/pianoplayer) (marcomusy) | Automatic piano fingering from MusicXML/MIDI via hand model; CLI/GUI/Web API | Python, MIT | Mature-ish | Reuse for fingering suggestions (quality unverified) [reported] |
+| Music Coach (Staffordshire student project, 2026) | Web MIDI app capturing pitch/velocity/timestamps for pitch/timing/dynamics feedback ([PDF](https://gradex.staffs.ac.uk/wp-content/uploads/2026/05/5563_Music_Coach_Project_Jemima_Orakwue_GradEx.pdf)) | Web | Prototype | Ignore |
+
+### 6.2 Alignment, following and analysis back-ends (Python)
+
+- **Matchmaker** (`pymatchmaker`, KAIST + JKU; ISMIR 2024 LBD, ISMIR 2025 paper): real-time score following for piano; for MIDI input offers `pthmm` (default), `arzt`, `dixon`, `outerhmm`, `hmm`; live MIDI device input or byte streams (e.g. from a WebSocket); MusicXML/MIDI scores; **Apache-2.0**; evaluated on ASAP, Batik, Vienna4x22 ([docs](https://pymatchmaker.readthedocs.io), [arXiv 2510.10087](https://arxiv.org/abs/2510.10087)) [confirmed: docs]. **Reuse.**
+- **parangonar + partitura** (CPJKU): offline/online note alignment (AutomaticNoteMatcher, DualDTWNoteMatcher, neural "TheGlueNoteMatcher"), Parangonada web viewer; partitura for MusicXML/MIDI/match I/O and performance features ([PyPI](https://pypi.org/project/parangonar), [partitura docs](https://partitura.readthedocs.io/en/latest/introduction.html)) [confirmed: PyPI/docs]. **Reuse.**
+- **music21** (MIT): Roman numeral analysis (`roman.romanNumeralFromChord`), corpora; MCP-server wrappers exist (e.g. [music21-mcp-server](https://glama.ai/mcp/servers/brightlikethelight/music21-mcp-server)) [reported]. **Reuse.** The project already holds the *When in Rome* Roman-numeral corpus locally (`data/external/when_in_rome`), which provides expert harmonic analyses for many classical pieces — a resource no commercial app exposes to learners [confirmed: local directory exists; coverage of target repertoire not checked].
+- **Expressive timing scripts** (Hu et al., TISMIR 2026; [github.com/huispaty/expressive_timing](https://github.com/huispaty/expressive_timing)) [reported] — reference metrics for timing analysis.
+
+### 6.3 LLM / "AI tutor" prototypes (2024–2026)
+
+- **Peachnote Piano Tutor** — Vladimir Viro, ISMIR 2025 demo "From Notes to Nuance: A Conversational AI for Affective Piano Performance": listens (MIDI or mic), aligns to a reference score in real time, and after the student pauses gives spoken teacher-style feedback on *expressive nuance* with synchronised score highlights via a multimodal LLM; WebRTC client–server; **no paper, poster, video or evaluation published** ([ismir2025program.ismir.net/lbd_451](https://ismir2025program.ismir.net/lbd_451.html)) [confirmed]. Closest prior art to this project's "listen → align → reflect" loop. **Learn** (and note the absence of evaluation).
+- **PianoQuest Live** — Gemini Live hackathon build combining camera, mic and Web MIDI; captures per-note velocity and timing "to ground its coaching" ([dev.to write-up](https://dev.to/jayiscoding/building-a-real-time-ai-piano-coach-with-gemini-live-api-4h08)) [reported].
+- **Lyra** (Devpost) — voice-first browser piano companion with USB-MIDI; per search snippet the team "hit the current limits of LLMs for music theory comprehension" and limited v1 to chords and scales ([devpost](https://devpost.com/software/lyra-ai-d5m1uw)) [reported; page returned 403].
+- **LLM symbolic-music competence benchmarks** — ChatMusician/MusicTheoryBench (2024) found LLMs weak on college-level theory ([arXiv 2402.16153](https://www.arxiv-vanity.com/papers/2402.16153)); ABC-Eval (2025, 1,086 items, notable limitations in seven LLMs; [arXiv 2509.23350](https://arxiv.org/abs/2509.23350v1)); WildScore (EMNLP 2025, score images; [arXiv 2509.04744](https://arxiv.org/abs/2509.04744)); CSyMR-Bench (LLM agent + music21 tools gains 5–7 points; [arXiv 2601.11556](https://www.arxiv.org/abs/2601.11556)) [reported from abstracts/snippets]. Implication [speculative but consistent across sources]: an LLM should **not** be trusted to do harmonic analysis from raw notes; it should narrate and question over *tool-computed* analysis (music21, corpus annotations, alignment output).
+- **Google A.I. Duet** (2016; [github](https://github.com/googlecreativelab/aiexperiments-ai-duet)) and **schollz/PianoAI** (Go, GPL-3.0; [github](https://github.com/schollz/PIanoAI)) — call-and-response generative accompaniment; no pedagogy [reported].
+
+### 6.4 Small commercial tools worth knowing
+
+- **Hanon Pro** (Furnace Creek Software, Aug 2024; iOS/Mac): technique exercises + repertoire; with MIDI, evaluates "accuracy, tempo and dynamics", auto page turns; does not document how dynamics are scored ([listing](https://mwm.ai/apps/hanon-pro/6473125727)) [reported].
+- **Scale Study** (iOS): MIDI scale checking, records fastest clean tempo; no evenness/velocity reporting ([appfollow](https://apps.appfollow.io/ios/scale-study-tempo-practice/6758663846?country=fr)) [reported].
+- **Yamaha Piano Diary** (iOS, free): records and archives every MIDI performance, counts practice days/time/notes; cloud backup; requires cable connection ([yamaha.com](https://au.yamaha.com/en/musical-instruments/pianos/products/apps/piano-diary)) [confirmed: official page snippet]. **Learn** — the only "practice archive" product found, and it does no analysis.
+- **Henle Library** (iOS/Android): urtext scores with *selectable alternative fingerings from named pianists* superimposed on the unchanged score, annotation, recording, metronome ([henle-library.com/en/features](https://henle-library.com/en/features/)) [confirmed]. **Learn** — "multiple expert interpretations overlaid on one urtext" is a strong pattern to generalise (fingerings, pedalling, phrasing, tempo maps).
+- **Music Plus One** (Christopher Raphael, Indiana): Listen (HMM) / Predict (Kalman-like timing model trained over rehearsals) / Play (time-stretched orchestral recording) — the classical precedent for an accompanist that *learns the soloist's interpretation* ([what.html](https://music.informatics.indiana.edu/~craphael/music_plus_one/what.html), [ICML 2010](https://icml.cc/imls/conferences/2010/papers/904.pdf)) [confirmed: author pages]. **Learn.**
 
 ---
 
-## 7. GAPS
+## 7. Reuse / learn / ignore — consolidated
 
-(In progress.)
+| Reuse (code, data, format) | Learn (design pattern) | Ignore |
+|---|---|---|
+| Verovio, OSMD (rendering); Web MIDI; Tone.js | Soundslice: notation synced to real recordings, loop snapping, LH/RH keyboard view | Simply Piano, Yousician, Skoove, Playground Sessions, Piano Maestro |
+| Matchmaker, parangonar, partitura (alignment/following) | Piano Marvel SASR: adaptive staircase over a calibrated excerpt bank | ToneGym/SoundGym gamification |
+| music21 + When in Rome / other RN corpora | Functional Ear Trainer: cadence-anchored scale-degree hearing | Tomplay, forScore, musescore.com |
+| PianoPlayer (fingering hypotheses) | Hookpad: scale-degree colouring + functional chord palette | Band-in-a-Box (for this user) |
+| TonnetzViz (reference code) | Harmony Space: one spatial metaphor for notes/chords/keys/modulation | Neothesia/falling-notes UIs |
+| iReal Pro charts as play-along source | Impro-Visor: roadmap "bricks", colouring of solo notes vs. changes | Chordify (for classical) |
+| ftrain/sightreading (architecture reference) | Henle: multiple expert fingerings over urtext | Captain Chords, Scaler 3 (except voice-leading UI) |
+| MuseScore Studio (authoring/cleanup only) | ReaLJam: AI displays its *plan* ahead of time; Music Plus One: accompanist learns from rehearsals | SmartMusic-style single % score |
+| | Peachnote Tutor: speak only after the player pauses | |
+| | ROLI Airwave: hand/technique sensing as a frontier | |
 
-## 8. IDEAS
+---
 
-(In progress.)
+## 8. GAPS — what nobody offers well
+
+Each gap lists the evidence that it is real. "Nobody" means "none of the ~50 products/projects reviewed here"; absence of evidence in a web search is weaker than a documented negative, and this is flagged.
+
+**G1. Performance analytics beyond correctness (timing, dynamics, voicing balance, pedalling, articulation) presented as *musical* quantities.**
+Evidence: every commercial tutor reviewed measures note correctness and approximate timing (§1). SmartMusic's grade is % correct notes/rhythms [reported]. Peachnote's ISMIR 2025 demo explicitly positions itself against commercial tutors that "mainly check note accuracy" [confirmed]. Open-source attempts at timing/dynamics metrics (Toccata, Czerny) are unfinished or dormant [confirmed]. A Piano World thread titled "app that shows unevenness" exists (content behind a paywall to the fetch tool) [reported]. Hanon Pro claims "dynamics" analysis without documenting it [reported]. Strength of evidence: **strong** for commercial products; moderate for "nobody at all".
+
+**G2. Comparing one's own performance with reference interpretations, at note level.**
+Evidence: Soundslice syncs notation to recordings but never to *the learner's* playing [confirmed]; no tutor overlays the learner's tempo/dynamics curve with, e.g., three reference pianists' curves. Research datasets (ASAP, Vienna4x22, Batik) and alignment tools make this feasible (§6.2) but are not productised [confirmed: tools exist; absence in products is from this survey]. **Strong.**
+
+**G3. Live linkage between what is being played and its harmonic/structural analysis on real classical repertoire.**
+Evidence: Hookpad does function-first analysis only for its own lead-sheet abstraction of pop songs [confirmed]; Chordify outputs chord symbols from audio with no function and with anecdotal accuracy problems [reported]; Tonnetz tools show pitch classes without key context or voice leading [confirmed]; no score-based practice platform (Soundslice, MuseScore, Newzik, Tomplay) shows Roman numerals, cadences, or form [confirmed absence on official feature pages]. Expert analyses exist (When in Rome, DCML corpora) but no learner-facing app uses them [speculative/absence]. **Strong.**
+
+**G4. Ear training generated from the learner's own repertoire and keyboard.**
+Evidence: all ear trainers reviewed use generic item banks (§3); EarMaster accepts MIDI answers but on its own content [confirmed]; Functional Ear Trainer's cadence method is not tied to pieces [confirmed]. No product turns "the progression in bars 1–4 of Moonlight" into a dictation, a "sing the bass", or a "which voice moved?" exercise [absence]. **Moderate–strong.**
+
+**G5. Learner-owned, inspectable, longitudinal practice data.**
+Evidence: Yamaha Piano Diary archives MIDI but analyses nothing and stores to vendor cloud [confirmed]; practice-log apps are manual or audio-timers [reported]; commercial tutors keep data in proprietary accounts and expose gamified progress [reported]. No tool found that records every session automatically and lets the user query it (e.g., "how has my bar-17 rubato changed over six weeks?"). **Strong** (consistent across searches; also logically implied by business models).
+
+**G6. Practice-*process* analysis (what the learner did, not just the final take).**
+Evidence: no product reviewed segments practice into attempts, loops, slow-practice phases, or error-repair episodes; all evaluate a "performance" run [absence; speculative that none exist]. Research covers it (see `performance-capture-analysis.md` §5 and `pedagogy-evidence.md`). **Moderate.**
+
+**G7. Voice-leading-aware harmony/voicing training on the keyboard.**
+Evidence: voicing trainers drill isolated voicings or ii–V–I in 12 keys (Chord Trainer) [reported]; r/JazzPiano thread reports no good app and recommends a book [reported]; Scaler 3 automates voice leading for composition but does not train it [reported]. **Moderate.**
+
+**G8. Honest, tool-grounded AI explanation.**
+Evidence: 2025–26 AI tutors (ROLI, PianoVision Ludwig, Musiah, Artie) do not document what their models measure [confirmed for ROLI; reported for others]; LLM benchmarks show weak raw symbolic-music reasoning, improved with music21 tools (CSyMR-Bench) [reported]; Lyra's team hit LLM theory limits [reported]. A design where the LLM narrates *verifiable* computed facts (with links to the bars and numbers) is not offered by anyone found. **Moderate–strong.**
+
+**G9. Cross-representation "relationship" views.**
+Evidence: products typically offer two linked views at most (score + falling notes; score + video; chords + timeline). Harmony Space showed one metaphor for multiple harmonic levels but ignored rhythm and is unavailable [confirmed]. No tool links notation ↔ keyboard geometry ↔ harmonic function ↔ sound ↔ the learner's performance in one synchronised cursor [absence]. **Moderate** (hard to prove a negative; but none of the surveyed feature lists come close).
+
+**G10. Technique sensing for an adult on an acoustic-action instrument without special hardware.**
+Evidence: ROLI's Airwave is the only consumer technique-sensing product, requires £299 hardware, and does not document what it detects [confirmed]; PianoVision hand tracking is unreliable in poor light [reported]. For this project, MIDI velocity/timing can only *infer* technique; webcam hand tracking is an open research question [speculative]. **Moderate** — and possibly not worth pursuing early.
+
+---
+
+## 9. IDEAS — non-obvious features inspired by the survey
+
+Format: **Idea** — learning mechanism · feasibility (with this user's stack: macOS, Chrome, USB MIDI, Python available) · originality relative to the surveyed landscape. All feasibility/originality judgements are [speculative].
+
+1. **"Interpretation overlay" (Henle-fingerings generalised to expression).** Overlay the learner's per-beat tempo curve and per-voice velocity profile on curves extracted from 2–4 reference performances (MIDI from datasets, or audio→MIDI transcription), aligned to the same score. *Mechanism:* contrastive perception — hearing/seeing *where* interpretations diverge sharpens the learner's own intent rather than prescribing a "correct" one. *Feasibility:* high for MIDI references (parangonar/partitura); medium for audio references (needs transcription + alignment). *Originality:* high; no product does note-level comparison against named interpretations.
+
+2. **Harmonic cursor.** As the score follower advances (Matchmaker), the current Roman numeral, local key, cadence type and voice-leading lines light up on score, keyboard and a Tonnetz/Harmony-Space-like map simultaneously; pausing on a chord plays its reduction (block chord, bass+soprano only). *Mechanism:* dual coding and attention-guiding while the motor system is engaged; builds harmony-as-relationships from the user's own repertoire. *Feasibility:* medium (needs RN analysis aligned to measures; When in Rome covers some pieces; music21 can propose others for manual correction). *Originality:* high (fills G3, G9).
+
+3. **Repertoire-mined ear training.** Automatically derive exercises from the pieces in the user's library: cadence + "what scale degree is the melody on at the downbeat of bar n?", "play back the bass line of bars 1–4", "which voice moved?" between two voicings from Clair de lune, functional dictation of a Chopin progression re-voiced. Answers via MIDI keyboard. *Mechanism:* transfer-appropriate processing — skills trained in the context where they will be used; Functional-Ear-Trainer-style tonal anchoring; Little et al. (2019) suggest interleaving practice with passive exposure, which listening to the piece provides. *Feasibility:* medium–high (music21 extraction + Web MIDI). *Originality:* high (G4).
+
+4. **Planned-motion display for accompaniment (ReaLJam-style "plan visibility") applied to classical study.** When an accompanist or the app plays the left hand (or orchestra reduction), show a short look-ahead of upcoming harmonies and the expected tempo; for jazz, show the next two bars of changes as functional arrows. *Mechanism:* training *anticipation* (predictive listening), which expert sight-readers and improvisers rely on. *Feasibility:* high for deterministic accompaniment; research-grade if generative. *Originality:* medium–high.
+
+5. **Accompanist that learns your rubato (Music Plus One revisited, MIDI-only).** For pieces with a second part (Bach two-part inventions with app-played voice, concerto reductions, jazz comping), fit a per-piece timing model over rehearsals so the app follows *your* phrasing better each time; expose the learned tempo map as an object the user can inspect and edit. *Mechanism:* ensemble-like feedback without a partner; making one's interpretation explicit and editable. *Feasibility:* medium (Kalman/HMM timing on symbolic input is simpler than Raphael's audio case). *Originality:* medium (precedent exists in research, absent in products).
+
+6. **Always-on silent-piano flight recorder + practice-process timeline.** A background CoreMIDI logger records every session; afterwards, segments sessions into attempts, loops, tempo changes and repaired errors, and maps them onto the score as a "heat-and-history" layer ("you looped bars 9–12 34 times; error rate fell after you slowed to 60%"). *Mechanism:* metacognition — making practice strategy visible supports deliberate practice; learner-owned data (G5, G6). *Feasibility:* high for capture; medium for segmentation (alignment of fragmented practice is discussed in `performance-capture-analysis.md` §3.4). *Originality:* high relative to products (Yamaha Piano Diary only archives).
+
+7. **Adaptive sight-reading staircase on public-domain excerpts, scored for *continuity* not just accuracy.** Rebuild Piano Marvel's SASR idea over IMSLP/MusicXML excerpts (Bach chorales, Czerny, Bartók Mikrokosmos where licensing permits), but score keeping the pulse, recovering after errors, and look-ahead (time-to-first-note after page turn). *Mechanism:* psychometric staircase keeps items near the edge of competence; scoring continuity rewards the skill that actually matters in sight-reading. *Feasibility:* medium (item calibration needs many trials; could start with heuristic difficulty features). *Originality:* medium (SASR exists; continuity scoring does not).
+
+8. **Voice-leading gym.** Given a progression (from the user's repertoire or a jazz standard), the user plays successive voicings; the app shows total semitone motion, parallel fifths/octaves, common tones held, and the minimal-motion alternative on the keyboard diagram; ear mode: hear two voicings, identify which voice moved and by how much. *Mechanism:* links keyboard geometry to harmonic function and to hearing; jazz and classical share the same underlying skill. *Feasibility:* high (pure symbolic computation + Web MIDI). *Originality:* medium–high (G7).
+
+9. **"Explain with receipts" LLM layer.** An LLM tutor may only make claims that cite computed evidence: bar numbers, measured values, RN labels from corpus or music21, alignment output; each claim is clickable to the score region and the data. It speaks only after the player pauses (Peachnote pattern) and asks questions ("did you intend the ritardando at bar 15?") more than it judges. *Mechanism:* reflective dialogue, self-explanation; avoids hallucinated theory (G8). *Feasibility:* high (tool-use LLM over local analysis APIs). *Originality:* medium–high (AI tutors exist; grounded, auditable ones do not).
+
+10. **Bricks-for-classics roadmap.** Port Impro-Visor's "roadmap of bricks" idea to classical repertoire: segment a piece into idiomatic units (cadential 6/4, Romanesca, Prinner, sequences by fifths, pedal points — in the spirit of galant schemata) and show them as a map; the same schema can be practised in all keys and recognised across pieces. *Mechanism:* chunking — experts perceive music in larger learned units; cross-piece recognition builds the "interconnected system" view. *Feasibility:* medium (schema detection is research-grade; start with manual/corpus labels). *Originality:* high in a learner product.
+
+11. **Transposition-as-probe.** Ask the user to play a passage they know in another key (or in parallel minor, or re-harmonised) and measure where fluency collapses; collapse points reveal whether the passage is stored as motor sequence vs. harmonic understanding. *Mechanism:* diagnostic transfer task; encourages encoding by function and geometry rather than by finger memory. *Feasibility:* high (MIDI comparison with transposed score). *Originality:* high (no product uses transposition diagnostically).
+
+12. **Pedal and resonance lab (silent-piano specific).** Visualise sustain-pedal MIDI CC64 timing against harmonic changes (did the pedal change catch the new bass? did it blur a non-chord tone?) on Clair de lune / Chopin; offer A/B audition of the same passage re-rendered with alternative pedalling. *Mechanism:* links an invisible motor action to its harmonic/sonic consequence. *Feasibility:* high for CC64 analysis; re-rendering needs a good piano sampler (e.g. via the silent system or a software piano). *Originality:* high — no product surveyed analyses pedalling.
+
+---
+
+## 10. Open questions and things not verified
+
+- Official feature pages for Skoove, Playground Sessions and Yousician could not be fetched (empty shells / 403); some claims rest on secondary reviews.
+- Community consensus on r/piano, Piano World and Pianostreet was **not** sampled directly (paywalled or not returned by search). Statements about forum attitudes are the agent's prior knowledge and should be checked.
+- "Earbeater" could not be found.
+- ROLI AI Music Coach: what the hand-tracking actually detects is undocumented; public beta status after March 2026 not checked.
+- Availability of ReaLchords/ReaLJam models or code was not verified.
+- Whether When in Rome covers the user's target pieces (Moonlight mvt 1, Clair de lune, Chopin) was not checked.
+- Newzik OMR quality on dense piano scores is unknown; worth a hands-on test with an IMSLP PDF.
+- MuseScore Studio 4.5/4.6 release notes were not checked for any newly added practice features (forum evidence says none as of the threads found).
+- Pricing figures change frequently; treat all prices as indicative.

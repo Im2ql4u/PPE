@@ -21,5 +21,9 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 
+# User's personal score files (copyrighted arrangements; large binaries)
+Piano_Anthology*.pdf
+scores/private/
+
 # Other agent tooling
 .pi/

@@ -27,7 +27,8 @@ overall = weighted(ok)
 lines = [
     "# E2 summary (generated)",
     "",
-    f"Pairs parsed: {len(pairs)}; kept (length ratio >= 0.95): {len(ok)}; parse failures: {len(failures)}.",
+    f"Pairs parsed: {len(pairs)}; kept (length ratio >= 0.95): {len(ok)}; parse failures: {len(failures)}; "
+    f"pairs aligned with a measure-number shift: {(ok.measure_shift != 0).sum()}.",
     "",
     "Time-weighted agreement (fraction of the overlapping duration where the two analyses agree):",
     "",

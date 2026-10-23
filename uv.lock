@@ -771,6 +771,7 @@ align = [
     { name = "parangonar" },
 ]
 dev = [
+    { name = "matplotlib" },
     { name = "pytest" },
     { name = "tabulate" },
 ]
@@ -791,6 +792,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 align = [{ name = "parangonar", specifier = ">=3.4" }]
 dev = [
+    { name = "matplotlib", specifier = ">=3.11.2" },
     { name = "pytest" },
     { name = "tabulate", specifier = ">=0.10.0" },
 ]
