@@ -1,0 +1,25 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Node
+node_modules/
+dist/
+
+# Downloaded corpora and datasets (re-fetch with experiments/*/fetch scripts)
+data/external/
+
+# Generated experiment output (keep small summaries in git, not bulk output)
+experiments/**/out/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+
+# Other agent tooling
+.pi/
