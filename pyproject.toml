@@ -7,7 +7,9 @@ dependencies = [
     "music21>=10.5",
     "partitura>=1.9",
     "ms3>=2.6",
-    "verovio>=6.3",
+    # 6.3.0 drops key-signature-implied accidentals on **kern import (F# -> F in MIDI/pitch);
+    # 4.5.1-6.2.0 are correct. See experiments/e1_render_and_address/README.md.
+    "verovio>=6.2,<6.3",
     "mido>=1.3",
     "pretty_midi>=0.2.11",
     "numpy",
@@ -16,7 +18,10 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pytest"]
+dev = [
+    "pytest",
+    "tabulate>=0.10.0",
+]
 # Heavier, optional research stacks; install with `uv sync --group align` etc.
 align = ["parangonar>=3.4"]
 
