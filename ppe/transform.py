@@ -19,6 +19,34 @@ MINOR_CANDIDATES = ["i", "iio", "III", "iv", "v", "V", "VI", "VII", "viio", "V7"
                     "N6", "It6", "Ger65", "Fr43", "V7/iv", "V7/VI", "V7/III", "IV", "I"]
 
 
+def transpose_name(name: str, interval: str) -> str:
+    """Transpose a spelled pitch name (with or without octave) by a named interval ('M2', '-A1')."""
+    from music21 import interval as m21interval
+
+    if interval in ("P1", ""):
+        return name
+    return m21pitch.Pitch(name).transpose(m21interval.Interval(interval)).nameWithOctave \
+        if any(ch.isdigit() for ch in name) else m21pitch.Pitch(name).transpose(m21interval.Interval(interval)).name
+
+
+def transpose_label(label: Label, interval: str, semitones: int) -> Label:
+    """The same Roman numeral in the transposed key: keys and spellings move, figure and roles don't."""
+    from dataclasses import replace
+
+    from ppe.model import Key
+
+    if not semitones:
+        return label
+    return replace(
+        label,
+        key=Key(transpose_name(label.key.tonic, interval), label.key.mode),
+        pitches=tuple(transpose_name(p, interval) for p in label.pitches),
+        root=transpose_name(label.root, interval), bass=transpose_name(label.bass, interval),
+        pcs=frozenset((pc + semitones) % 12 for pc in label.pcs),
+        extra_pcs=frozenset((pc + semitones) % 12 for pc in label.extra_pcs),
+    )
+
+
 def pc_distance(a: int, b: int) -> int:
     d = (b - a) % 12
     return d if d <= 6 else d - 12

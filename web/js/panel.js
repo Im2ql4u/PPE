@@ -56,7 +56,7 @@ function Selection({ piece, inspect, selection }) {
         <div class="pcs">${inspect.pitch_classes.map((p) => html`<span class="pc">${p}</span>`)}</div>
         ${chord && html`<p class="chord-id">${chordName(chord)}${chord.bass !== chord.root && chord.root ? html`<span class="muted">, ${chord.bass} in the bass</span>` : ""}</p>`}
         ${!chord && inspect.intervals.length === 1 && html`<p class="chord-id">${inspect.intervals[0].low}–${inspect.intervals[0].high} <span class="muted">· ${inspect.intervals[0].name.toLowerCase()}</span></p>`}
-        ${chord && inspect.intervals.length > 1 && html`<p class="intervals muted">Above ${bassNote}: ${inspect.intervals.slice(0, 5).map((i) => `${i.high} ${shortInterval(i)}`).join(" · ")}</p>`}
+        ${chord && inspect.intervals.length > 1 && html`<p class="intervals muted">Above ${bassNote}: ${inspect.intervals.slice(0, 5).map((i, k) => html`${k > 0 ? " · " : ""}<span class="iv">${i.high} <i>${i.name.toLowerCase()}</i></span>`)} <span class="figs" title="Figured-bass reading: intervals above the bass">(${inspect.intervals.map((i) => i.number).sort((a, b) => b - a).join("/")})</span></p>`}
       </div>
       <div class="readings">
         ${inspect.lenses.map((l) => html`<${Reading} piece=${piece} lens=${l} primary=${primary} selection=${selection} />`)}
@@ -71,15 +71,12 @@ function chordName(c) {
   return c.root && c.is_tertian ? `${c.root} ${name}` : name;
 }
 
-function shortInterval(i) {
-  return i.short.replace(/^P/, "P").replace(/^M/, "M").replace(/^m/, "m");
-}
-
 function Reading({ piece, lens, primary, selection }) {
   const [more, setMore] = useState(false);
   const an = piece.analyses.find((a) => a.id === lens.analysis);
-  const labels = lens.labels.map((id) => an.labels.find((l) => l.id === id)).filter(Boolean);
-  const lab = an.labels.find((l) => l.id === lens.primary);
+  // readings come from the inspection (spelled in the current transposition)
+  const labels = lens.readings || [];
+  const lab = labels.find((l) => l.id === lens.primary) || labels[0];
   if (!lab) return null;
   const ex = lab.explanation;
   return html`

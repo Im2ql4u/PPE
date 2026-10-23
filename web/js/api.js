@@ -14,6 +14,7 @@ export const listPieces = () => req("/api/pieces");
 export const getPiece = (id) => req(`/api/pieces/${id}`);
 export const getScore = (id, { width, transpose, zoom }) =>
   req(`/api/pieces/${id}/score?width=${Math.round(width)}&transpose=${transpose}&scale=${zoom}`);
-export const inspect = (id, sel) => post(`/api/pieces/${id}/inspect`, sel.ids ? { ids: sel.ids } : { start: sel.start, end: sel.end });
+export const inspect = (id, sel, transpose = 0) =>
+  post(`/api/pieces/${id}/inspect`, sel.ids ? { ids: sel.ids, transpose } : { start: sel.start, end: sel.end, transpose });
 export const playback = (id, body) => post(`/api/pieces/${id}/playback`, body);
-export const alternatives = (id, labelId) => req(`/api/pieces/${id}/labels/${labelId}/alternatives`);
+export const alternatives = (id, labelId, transpose = 0) => req(`/api/pieces/${id}/labels/${labelId}/alternatives?transpose=${transpose}`);

@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   WHITE_COUNT, buildAnchors, isBlack, keyRect, labelAt, layoutLane, midiName, nearestSample, notesIn,
-  sampleFile, spanOf, stepHarmony, toSeconds, whiteIndex, xAt,
+  sampleFile, spanOf, stepHarmony, toSeconds, whiteIndex, xAt, fifthsOf, nameOfFifths, transposeTonic,
 } from "../js/util.js";
 
 test("88-key geometry: 52 white keys, A0 first, C8 last", () => {
@@ -64,6 +64,16 @@ test("spans and note filtering", () => {
 
 test("lane layout pushes overlapping labels right and keeps free ones in place", () => {
   assert.deepEqual(layoutLane([{ x: 0, w: 20 }, { x: 10, w: 10 }, { x: 100, w: 5 }], 5), [0, 25, 100]);
+});
+
+test("tonics move along the line of fifths", () => {
+  assert.equal(fifthsOf("C♯"), 7);
+  assert.equal(fifthsOf("B♭"), -2);
+  assert.equal(nameOfFifths(7), "C♯");
+  assert.equal(nameOfFifths(-2), "B♭");
+  assert.equal(transposeTonic("C♯", 2), "D♯"); // +M2: C# minor -> D# minor
+  assert.equal(transposeTonic("B", -7), "B♭"); // -A1
+  assert.equal(transposeTonic("E", 0), "E");
 });
 
 test("seconds from quarters", () => {

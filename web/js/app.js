@@ -2,8 +2,8 @@ import { h, render } from "preact";
 import { useEffect } from "preact/hooks";
 import htm from "htm";
 import {
-  loadPieces, openPiece, playSelection, select, setNoteColour, setTranspose, setZoom, step, toggleLens, toggleLoop,
-  writeHash,
+  followLink, loadPieces, openPiece, playSelection, select, setNoteColour, setTranspose, setZoom, step, toggleLens,
+  toggleLoop, writeHash,
 } from "./actions.js";
 import { Keyboard } from "./keyboard.js";
 import { Panel } from "./panel.js";
@@ -71,7 +71,7 @@ function App() {
   useEffect(() => {
     loadPieces().catch((e) => setState({ error: String(e.message || e) }));
     const onKey = (e) => {
-      if (e.target.closest("input, select, textarea")) return;
+      if (e.target instanceof Element && e.target.closest("input, select, textarea")) return;
       if (e.key === " ") { e.preventDefault(); playSelection(); }
       else if (e.key === "ArrowRight") { e.preventDefault(); step(+1); }
       else if (e.key === "ArrowLeft") { e.preventDefault(); step(-1); }
@@ -81,7 +81,11 @@ function App() {
       else if (e.key === "[") setTranspose(getState().transpose - 1);
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("hashchange", followLink); // links into the app from elsewhere
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("hashchange", followLink);
+    };
   }, []);
   return html`
     <div class="app">

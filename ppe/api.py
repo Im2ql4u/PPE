@@ -17,7 +17,7 @@ from ppe.render import inject_labels, render_svg, transposition_interval
 from ppe.selection import inspect
 from ppe.serialize import piece_json
 from ppe.spelling import pretty
-from ppe.transform import candidates
+from ppe.transform import candidates, transpose_label
 
 WEB = Path(__file__).resolve().parents[1] / "web"
 FIFTHS_MAJOR = ["C♭", "G♭", "D♭", "A♭", "E♭", "B♭", "F", "C", "G", "D", "A", "E", "B", "F♯", "C♯"]
@@ -77,6 +77,7 @@ class InspectReq(BaseModel):
     ids: list[str] | None = None
     start: float | None = None
     end: float | None = None
+    transpose: int = 0
 
 
 def _frac(x: float | None) -> Fraction | None:
@@ -88,7 +89,7 @@ def inspect_selection(pid: str, req: InspectReq):
     p = get_piece(pid)
     if not req.ids and (req.start is None or req.end is None):
         raise HTTPException(400, "give ids or start/end")
-    return inspect(p, req.ids, _frac(req.start), _frac(req.end))
+    return inspect(p, req.ids, _frac(req.start), _frac(req.end), transpose=max(-11, min(11, req.transpose)))
 
 
 class Substitution(BaseModel):
@@ -128,13 +129,15 @@ def playback(pid: str, req: PlaybackReq):
 
 
 @app.get("/api/pieces/{pid}/labels/{label_id}/alternatives")
-def alternatives(pid: str, label_id: str):
+def alternatives(pid: str, label_id: str, transpose: int = 0):
     p = get_piece(pid)
     lab = next((l for a in p.analyses for l in a.labels if l.id == label_id), None)
     if lab is None:
         raise HTTPException(404, "label not found")
-    return {"label": label_id, "original": {"display": lab.display, "pitches": [pretty(x) for x in lab.pitches]},
-            "candidates": candidates(lab)}
+    interval, _ = transposition_interval(transpose, p.measures[0].key_fifths)
+    shown = transpose_label(lab, interval, transpose)  # figures and distances are transposition-invariant
+    return {"label": label_id, "original": {"display": shown.display, "pitches": [pretty(x) for x in shown.pitches]},
+            "candidates": candidates(shown)}
 
 
 @app.get("/")

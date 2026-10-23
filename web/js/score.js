@@ -4,7 +4,7 @@ import htm from "htm";
 import * as api from "./api.js";
 import { selectChordAt, selectLabel, selectMeasure, selectNote } from "./actions.js";
 import { setState, useStore } from "./store.js";
-import { buildAnchors, layoutLane, xAt } from "./util.js";
+import { buildAnchors, layoutLane, transposeTonic, xAt } from "./util.js";
 
 const html = htm.bind(h);
 
@@ -37,18 +37,32 @@ export function Score() {
   const [svgVersion, setSvgVersion] = useState(0);
   const [geom, setGeom] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [layoutTick, setLayoutTick] = useState(0);
+
+  // The SVG scales with the paper; whenever its rendered size changes (scrollbar appearing,
+  // window resize before a re-render), positions measured earlier are stale: measure again.
+  useEffect(() => {
+    if (!host.current) return;
+    let raf = 0;
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => setLayoutTick((t) => t + 1));
+    });
+    ro.observe(host.current);
+    return () => { ro.disconnect(); cancelAnimationFrame(raf); };
+  }, []);
 
   // width tracking (debounced)
   useEffect(() => {
     if (!wrap.current) return;
-    let t;
+    let t, old0 = 0;
     const ro = new ResizeObserver((entries) => {
       clearTimeout(t);
       const w = entries[0].contentRect.width;
-      t = setTimeout(() => setWidth((old) => (Math.abs(old - w) > 24 ? w : old)), 180);
+      t = setTimeout(() => setWidth((old) => (Math.abs(old - w) > 24 ? w : old)), old0 ? 180 : 0);
+      old0 = w;
     });
-    ro.observe(wrap.current);
-    setWidth(wrap.current.clientWidth);
+    ro.observe(wrap.current); // fires once immediately with the content-box width
     return () => { ro.disconnect(); clearTimeout(t); };
   }, []);
 
@@ -57,7 +71,7 @@ export function Score() {
     if (!piece || !width) return;
     let cancelled = false;
     setBusy(true);
-    api.getScore(piece.id, { width: width - 32, transpose, zoom }).then((res) => {
+    api.getScore(piece.id, { width: width - 12, transpose, zoom }).then((res) => {
       if (cancelled) return;
       host.current.innerHTML = res.pages.join("");
       setState({ transposeInfo: res.transpose });
@@ -96,9 +110,15 @@ export function Score() {
     const anchors = new Map();
     host.current.querySelectorAll("g.system").forEach((sys, i) => {
       const r = rel(sys.getBoundingClientRect());
-      const staves = [...sys.querySelectorAll("g.staff")].map((s) => rel(s.getBoundingClientRect()));
-      const staffBottom = Math.max(...staves.map((s) => s.bottom), r.top);
-      systems.push({ i, left: r.left, right: r.right, top: r.top, bottom: Math.max(staffBottom, r.bottom) });
+      // The system's own box misses some content below the staff in practice; take the lowest
+      // point of everything that can hang below it (notes, ledger lines, hairpins, slurs …).
+      const below = sys.querySelectorAll("g.staff, g.note, g.ledgerLines, g.hairpin, g.dynam, g.dir, g.slur, g.tie, g.pedal, g.tuplet, g.fermata, g.artic");
+      let bottom = r.top;
+      for (const el of below) {
+        const b = el.getBoundingClientRect();
+        if (b.height > 0) bottom = Math.max(bottom, b.bottom - base.top);
+      }
+      systems.push({ i, left: r.left, right: r.right, top: r.top, bottom });
       for (const mEl of sys.querySelectorAll("g.measure")) {
         const m = maps.ridToMeasure.get(mEl.id);
         if (!m) continue;
@@ -108,7 +128,7 @@ export function Score() {
       }
     });
     setGeom({ noteEl, systems, measureSystem, anchors });
-  }, [svgVersion, maps]);
+  }, [svgVersion, maps, layoutTick]);
 
   // note colouring: selection, playback, lens state
   const disputed = useMemo(() => disputedSet(piece, lenses), [piece, lenses]);
@@ -181,6 +201,8 @@ export function Score() {
 
 function Lanes({ piece, geom, lenses, selection }) {
   const shown = lenses.map((id) => piece.analyses.find((a) => a.id === id)).filter(Boolean);
+  const tInfo = useStore((s) => s.transposeInfo);
+  const fifths = tInfo ? tInfo.key_fifths - piece.measures[0].key_fifths : 0;
   if (!shown.length) return null;
   const LANE = 19;
   const items = [];
@@ -192,7 +214,7 @@ function Lanes({ piece, geom, lenses, selection }) {
       const sysI = geom.measureSystem.get(lab.m);
       const anchors = geom.anchors.get(lab.m);
       if (sysI == null || !anchors) continue;
-      const keyText = lab.key.label !== prevKey ? keyPrefix(lab.key) : "";
+      const keyText = lab.key.label !== prevKey ? keyPrefix(lab.key, fifths) : "";
       prevKey = lab.key.label;
       const x = xAt(anchors, lab.on);
       if (!perSystem.has(sysI)) perSystem.set(sysI, []);
@@ -222,9 +244,12 @@ function Lanes({ piece, geom, lenses, selection }) {
       }
     }
   }
+  if (window.location.search.includes("debug")) {
+    geom.systems.forEach((sys) => items.push(html`<span class="debug-box" style=${`left:${sys.left}px;top:${sys.top}px;width:${sys.right - sys.left}px;height:${sys.bottom - sys.top}px`}></span>`));
+  }
   // lane names at the left of every system
   geom.systems.forEach((sys) => {
-    shown.forEach((an, li) => items.push(html`<span class="lane-name" style=${`left:${sys.left - 4}px;top:${sys.bottom + 8 + li * LANE}px;--lens:${an.colour}`}>${an.id}</span>`));
+    shown.forEach((an, li) => items.push(html`<span class="lane-name" style=${`top:${sys.bottom + 8 + li * LANE}px;--lens:${an.colour}`}>${an.id}</span>`));
   });
   return html`<div class="lanes">${items}</div>`;
 }
@@ -238,8 +263,8 @@ function textWidth(text) {
   return measureCtx.measureText(text).width;
 }
 
-function keyPrefix(key) {
-  const t = key.tonic;
+function keyPrefix(key, fifths = 0) {
+  const t = transposeTonic(key.tonic, fifths);
   return (key.mode === "minor" ? t.charAt(0).toLowerCase() + t.slice(1) : t) + ": ";
 }
 

@@ -24,6 +24,18 @@ function readHash() {
   return { piece: p.get("piece"), s: num("s"), e: num("e"), t: num("t"), mode: p.get("mode"), lens: p.get("lens"), colour: p.get("notes") };
 }
 
+/** React to a changed URL hash (a followed link, back/forward). */
+export async function followLink() {
+  const link = readHash();
+  const st = getState();
+  if (link.piece && link.piece !== st.pieceId) {
+    const p = st.pieces.find((x) => x.id === link.piece && x.built);
+    if (!p) return;
+    await openPiece(p.id);
+  }
+  await applyLink(link);
+}
+
 async function applyLink(link) {
   const patch = {};
   if (link.t) patch.transpose = link.t;
@@ -77,14 +89,15 @@ export async function select(sel) {
   }
   setState({ selection: sel, alternatives: null, substitution: null });
   const seq = ++inspectSeq;
+  const { transpose } = getState();
   try {
-    const result = await api.inspect(pieceId, sel);
+    const result = await api.inspect(pieceId, sel, transpose);
     if (seq !== inspectSeq) return;
     setState({ inspect: result });
     // A selection that sits within one harmony offers chord substitutions.
     const lab = harmonyOf(sel);
     if (lab) {
-      const alt = await api.alternatives(pieceId, lab.id);
+      const alt = await api.alternatives(pieceId, lab.id, transpose);
       if (seq === inspectSeq) setState({ alternatives: alt });
     }
   } catch (e) {
@@ -194,7 +207,14 @@ export function stopPlayback() {
 export const setMode = (mode) => setState({ mode });
 export const setSpeed = (speed) => setState({ speed });
 export const toggleLoop = () => setState((s) => ({ loop: !s.loop }));
-export const setTranspose = (n) => setState({ transpose: Math.max(-6, Math.min(6, n)) });
+export function setTranspose(n) {
+  const t = Math.max(-6, Math.min(6, n));
+  if (t === getState().transpose) return;
+  audio.stop();
+  setState({ transpose: t });
+  const { selection } = getState();
+  if (selection) select(selection); // re-describe the selection in the new key
+}
 export const setNoteColour = (noteColour) => setState({ noteColour });
 export const setZoom = (zoom) => setState({ zoom: Math.max(28, Math.min(56, zoom)) });
 

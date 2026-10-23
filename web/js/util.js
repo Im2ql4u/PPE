@@ -116,5 +116,31 @@ export function nearestSample(midi) {
 const SAMPLE_NAMES = { 0: "C", 3: "Ds", 6: "Fs", 9: "A" };
 export const sampleFile = (midi) => `${SAMPLE_NAMES[midi % 12]}${Math.floor(midi / 12) - 1}.mp3`;
 
+// Line of fifths: C = 0, G = 1, F = -1, F♯ = 6, B♭ = -2 ...
+const LOF_LETTERS = ["F", "C", "G", "D", "A", "E", "B"];
+
+export function fifthsOf(name) {
+  const letter = name[0].toUpperCase();
+  let acc = 0;
+  for (const ch of name.slice(1)) {
+    if (ch === "♯" || ch === "#") acc += 1;
+    else if (ch === "♭" || ch === "b" || ch === "-") acc -= 1;
+    else if (ch === "𝄪") acc += 2;
+    else if (ch === "𝄫") acc -= 2;
+  }
+  return LOF_LETTERS.indexOf(letter) - 1 + 7 * acc;
+}
+
+export function nameOfFifths(p) {
+  const idx = p + 1;
+  const letter = LOF_LETTERS[((idx % 7) + 7) % 7];
+  const acc = Math.floor(idx / 7);
+  const sign = acc > 0 ? "♯" : "♭";
+  return letter + (Math.abs(acc) === 2 ? (acc > 0 ? "𝄪" : "𝄫") : sign.repeat(Math.abs(acc)));
+}
+
+/** Transpose a tonic name by a number of fifths (the key-signature change of the transposition). */
+export const transposeTonic = (name, fifths) => (fifths ? nameOfFifths(fifthsOf(name) + fifths) : name);
+
 /** Distinct pitch classes, sorted, for comparing sets. */
 export const pcSet = (midis) => [...new Set(midis.map((m) => ((m % 12) + 12) % 12))].sort((a, b) => a - b);
