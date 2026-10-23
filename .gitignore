@@ -9,8 +9,10 @@ __pycache__/
 node_modules/
 dist/
 
-# Downloaded corpora and datasets (re-fetch with experiments/*/fetch scripts)
+# Downloaded corpora and datasets (re-fetch with `python -m ppe fetch`)
 data/external/
+# Built piece packs (derived from the corpora; rebuild with `python -m ppe build`)
+data/packs/
 
 # Generated experiment output (keep small summaries in git, not bulk output)
 experiments/**/out/

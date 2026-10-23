@@ -18,6 +18,8 @@ from music21 import converter, roman
 warnings.filterwarnings("ignore")
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+from ppe.analyses import _bracket_pitches  # noqa: E402
 CORPUS = ROOT / "data" / "external" / "when_in_rome" / "Corpus"
 OUT = Path(__file__).parent / "out"
 
@@ -37,9 +39,12 @@ def label_of(rn: roman.RomanNumeral) -> Label:
     for p in (rn.third, rn.fifth):
         if p is not None:
             core.add(p.pitchClass)
+    # music21 misreads bracketed alterations ([b9] -> doubly flattened ninth, [b9b5] garbled);
+    # use the corrected reading from the app's importer (see ppe/analyses.py, docs/validation.md).
+    pitches, _ = _bracket_pitches(rn, rn.figure)
     return Label(
         key=(rn.key.tonic.pitchClass, rn.key.mode),
-        pcs=frozenset(rn.pitchClasses),
+        pcs=frozenset(p.pitchClass for p in pitches),
         root=rn.root().pitchClass,
         bass=rn.bass().pitchClass,
         triad=frozenset(core),

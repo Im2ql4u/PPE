@@ -1,7 +1,7 @@
 [project]
-name = "ppe-research"
-version = "0.0.0"
-description = "Research experiments for a computational piano learning laboratory (not the application)."
+name = "ppe"
+version = "0.1.0"
+description = "Passage Laboratory: a local environment for exploring piano music through lenses, transforms, probes and mirrors."
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "music21>=10.5",
@@ -15,6 +15,9 @@ dependencies = [
     "numpy",
     "pandas",
     "pyyaml",
+    "fastapi>=0.161.1",
+    "uvicorn>=0.54.0",
+    "httpx>=0.28.1",
 ]
 
 [dependency-groups]
@@ -27,4 +30,9 @@ dev = [
 align = ["parangonar>=3.4"]
 
 [tool.uv]
+# Not built as a wheel: run from the repo root with `uv run python -m ppe ...`.
 package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
