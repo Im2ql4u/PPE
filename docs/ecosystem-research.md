@@ -11,10 +11,11 @@ Reference keys like [R12] point to `references.md`.
 | A. Interactive sheet music | Session 1 (2026-10-23) |
 | B. Score ingestion and sources | Session 1 |
 | C. Symbolic analysis: libraries, models, **annotated corpora** | Session 1 |
-| D. Piano input and performance capture | Session 2. Hardware facts already in `hardware.md` |
-| E. Score following and alignment | Session 2 |
-| F. Score-aware tutor | Session 5 |
-| G. Products and prior art | Session 4 |
+| D. Piano input and performance capture | Session 2: digest in `audio-midi-research.md`; full note `research-notes/performance-capture-analysis.md` |
+| E. Score following and alignment | Session 2: same as D |
+| F. Score-aware tutor | Session 2: `research-notes/llm-symbolic-ai.md` |
+| G. Products and prior art | Session 2: `research-notes/products-landscape.md` |
+| Also | Cognition and models: `research-notes/cognition-and-models.md`. Visualisation, HCI and improvisation systems: `research-notes/visualization-hci-improvisation.md` |
 
 ---
 
@@ -24,7 +25,7 @@ Reference keys like [R12] point to `references.md`.
 
 | Piece | Score source | Expert analysis | Notes |
 |---|---|---|---|
-| Beethoven, Sonata op. 27 no. 2, mvt. 1 ("Moonlight") | DCML `beethoven_piano_sonatas`, file `14-1` (MuseScore 3.6.2, no harmony labels) [confirmed, R10] | **Two independent analyses** in *When in Rome*: Chen & Su (BPS-FH, ISMIR 2018) and "DT" (most likely Dmitri Tymoczko; to verify). RomanText format, addressed by measure and beat [confirmed, R12] | The two analyses **disagree in instructive places** (see `music-theory-engine.md` §3). |
+| Beethoven, Sonata op. 27 no. 2, mvt. 1 ("Moonlight") | DCML `beethoven_piano_sonatas`, file `14-1` (MuseScore 3.6.2, no harmony labels) [confirmed, R10] | **Two independent analyses** in *When in Rome*: Chen & Su (BPS-FH, ISMIR 2018) and "DT" (Dmitri Tymoczko, per other files of the same type; some DT files say "and his computer", i.e. partly computer-assisted). RomanText format, addressed by measure and beat [confirmed, R12] | The two analyses **disagree in instructive places** (see `music-theory-engine.md` §3). |
 | Debussy, *Suite bergamasque* no. 3, *Clair de lune* | DCML `debussy_suite_bergamasque`, file `l075-03_suite_clair` (MuseScore 3.6.2) [confirmed, R11] | DCML standard v2.3.0, **150 labels over 72 bars**, inside the score file, plus extracted TSV. Includes local key, chord tones, suspensions, cadences (e.g. IAC at m. 9) and phrase boundaries `{ }` [confirmed, R11] | Annotated and reviewed by DCML staff. |
 
 Consequences:
@@ -61,7 +62,10 @@ Consequences:
     This suits a system where analysis, performance data and annotations all point at musical objects.
   - OSMD keeps a **graphical model** that you query by position.
     Linking it back to external data (e.g. a DCML note row) needs our own mapping by measure, onset, staff and pitch.
-- **Leaning: Verovio** [speculative, to test in experiment E1].
+- **Update (E1, 2026-10-23):** Verovio renders Moonlight from `**kern` with addresses matching music21 for 1,141/1,143 notes.
+  **But Verovio 6.3.0 silently drops key-signature-implied accidentals on `**kern` import** (wrong MIDI and pitch; correct-looking engraving). 4.5.1–6.2.0 are correct. Pinned `<6.3`.
+  `**kern` IDs encode source line and field, so they shift when lines are inserted.
+- **Leaning: Verovio** [speculative; E1 supports it, but the OSMD bake-off on MusicXML is still to do].
   Reasons: native MEI with stable IDs, time maps, repeat expansion, Humdrum import (for Craig Sapp's Beethoven edition), the same toolkit in Python for server-side work, and adoption by current MIR research tools.
   Risks: LGPL (fine for local use), and engraving quality on dense piano textures is unverified.
 - **Whatever the renderer, renderer IDs must not be the primary key of musical objects.**
@@ -165,12 +169,41 @@ Acceptance: one renderer passes all five on both pieces.
 | RNHybrid (MusicBERT + GNN) | 2026 | **≈ 0.58** blind on both benchmarks | [R16] |
 | RNHybrid with known labels given | 2026 | 0.58 → **0.80–0.83** on masked positions when 95% of labels are given | [R16] |
 
-Assessment [speculative but well-grounded]:
+**What the 0.58 actually measures** (from the RNHybrid paper, re-read 2026-10-23 [R16]):
 
-- Fully automatic Roman-numeral analysis gets roughly **4 in 10 chords wrong** under the strict metric.
-  Component accuracies (e.g. local key ≈ 0.85, degree ≈ 0.73 for RNHybrid) are much better than the full label.
-- The strict metric also *overstates* error, because the reference is a single analysis, and experts disagree.
-  The authors acknowledge this [R16]. Moonlight shows it directly (see `music-theory-engine.md` §3).
+- *Test data:* held-out subsets of two merged corpora in the Dilemmadata schema.
+  - "AugNet": the AugmentedNet dataset (Bach chorales, Haydn quartets, Beethoven sonata first movements (BPS), TAVERN variations, When in Rome material).
+  - "DLC": DCML's Distant Listening Corpus (Romantic piano, Beethoven, Mozart, etc.).
+  The paper states the split avoids leakage but does not list pieces.
+- *Granularity:* the model predicts per note and pools to onsets. The paper does not state explicitly at which level the headline number is computed.
+- *Metric:* a label counts only if local key, degree, quality and inversion are **all** correct, against **one** reference analysis per piece ("CSR-style", following AugmentedNet). Baselines are partly copied from earlier papers and partly retrained.
+- *Component accuracies* (same table):
+
+  | Model, test set | Local key | Degree | Quality | Inversion |
+  |---|---|---|---|---|
+  | RNHybrid, DLC | 0.87 | 0.71 | 0.82 | 0.82 |
+  | RNHybrid, AugNet | 0.85 | 0.73 | 0.82 | 0.80 |
+
+- *The authors' own caveat:* some passages "admit multiple defensible analyses", and single-reference accuracy is "at best a coarse proxy".
+
+**What human experts achieve on a comparable measure** (our experiment E2, 329 pairs of independent analyses in When in Rome, strict = same key + same chord pitch content + same bass, time-weighted):
+
+| Pair type | Strict agreement |
+|---|---|
+| Bach chorales | 0.90 |
+| TAVERN double annotation | 0.89 |
+| Mozart sonatas (DCML vs 16 theorists) | 0.78 |
+| Beethoven sonatas, DCML vs other | 0.71 (lower bound; conversion artefacts in the tail) |
+| Chopin mazurkas (vs a semi-automatic analysis) | 0.53 |
+| Moonlight mvt. 1 (BPS vs Tymoczko) | 0.66 |
+
+Assessment [speculative but grounded in the above]:
+
+- "0.58" does **not** mean "the model is wrong on 42% of chords" in any absolute sense. It means it disagrees with *one* expert on 42% of onsets under an all-components-must-match rule.
+- Human experts disagree with each other on 10–45% of the music under a similar rule, depending on repertoire.
+  On Romantic piano music, the human–human figure (about 0.5–0.7) is in the same range as the model's 0.58. **This is suggestive, not a like-for-like comparison**: different pieces, granularity, label normalisation, and our metric compares sounding pitch content (so V/V vs II counts as agreement).
+  The right next test (E4, proposed) is to score a model against *both* analyses of the same pieces, e.g. "agrees with at least one expert".
+- Component errors matter differently. Key frame (tonicisation vs modulation) is where experts also disagree most. Wrong chord *content* is a more serious failure than a different key frame for the same sonority.
 - **Design implication:** automatic analysis is a **draft to be confirmed**, shown with alternatives (the 2026 interface shows top-3 candidates with likelihoods) and corrected by the user.
   The "interactive completion" result (accuracy rises as labels are fixed) supports a workflow where the user's corrections propagate.
   Code: `manoskary/analysisgnn`; demo interface at analysisgnn.com, Verovio-based [R16]. Licence not yet checked.

@@ -3,6 +3,11 @@
 The user's instrument determines how performance can be captured.
 This document records what is known, what is assumed, and the experiments that settle the rest.
 
+> **Status (2026-10-23): unverified for the user's instrument.** The piano has not arrived. Everything below describes the *adsilent 2* as documented in its v1.00 user guide.
+> The exact piano model (EUP-111 vs EUP-111E) and silent-system version (adsilent 2 vs older adsilent / PRO) must be confirmed on delivery before any capability is treated as confirmed for this project.
+> Development does not depend on it: the capture pipeline is built against a simulator whose message profile is configurable (`audio-midi-research.md`).
+> **Runtime is macOS.** Windows notes from session 1 are superseded.
+
 ## Summary
 
 The adsilent 2 is a **MIDI controller built into an acoustic piano**.
@@ -70,16 +75,19 @@ Experiment H1 settles this.
 4. **Audio recording is optional.** Practising on the real acoustic piano and capturing it with a microphone is useful for listening back.
    It is also how one would study tone and resonance, which MIDI can't represent.
    Alignment with MIDI is then a simple synchronisation problem, not transcription.
-5. **Windows MIDI caveat** [reported, verify in Session 2]: classic Windows MIDI (WinMM) lets only one application open a device at a time.
-   If MuseScore or a DAW holds the adsilent, the browser can't.
-   The newer Windows MIDI Services stack is meant to allow multiple clients; check whether it is active on this machine.
+5. **macOS**: CoreMIDI lets several applications read the same device at once [reported].
+   So Chrome (live UI) and a Python capture daemon (authoritative log) can both listen. Verify on hardware day.
+   The guide lists macOS as supported for USB-MIDI. Bluetooth MIDI works on Mac too, but USB is preferred for latency and timestamp stability.
+6. **Closest existing data:** the Rach3 rehearsal MIDI dataset was partly recorded on an **Essex EUP-116E silent piano** [reported in the Rach3 ISMIR 2025 paper]. Its silent system is not identified in what we read.
+   It is the best available proxy for what this instrument's practice data will look like.
 
 ## Experiments
 
 ### H1. Basic MIDI capture (≈10 minutes, user)
 
-1. Connect the adsilent 2 USB-C port to the PC with a USB-C to USB-A or USB-C cable.
-2. Open <https://studiocode.dev/midi-monitor/> or <https://www.midimonitor.org/> in Chrome or Edge. Any Web MIDI monitor works; the project will make its own in Session 8.
+0. Record the exact model plates: piano model and serial, silent-system model, firmware version (from the adsilent app).
+1. Connect the adsilent USB-C port to the Mac with a USB-C cable.
+2. Open a Web MIDI monitor in Chrome, or run the project's capture-characterisation script (to be written in M4). Also check *Audio MIDI Setup → MIDI Studio* that the device appears.
 3. Record, and copy the log into `experiments/h1-midi-capture/notes.md`:
    - The device name the browser reports.
    - One soft note and one loud note: the note-on velocity, and whether note-off arrives as `0x8n` with a release velocity or as note-on with velocity 0.
@@ -110,6 +118,7 @@ Expected capture jitter: about 1 ms over USB full-speed [speculative].
 - Does MIDI arrive while the mute rail is off? (H2)
 - What does "Continuous Note-On" do? (H1)
 - What is the middle pedal on this EUP-111, and does it have a sensor?
-- Can the browser and another app (e.g. MuseScore) use the device at the same time on this Windows install?
+- Which silent-system version and firmware are actually installed?
+- Can Chrome and the Python daemon (and MuseScore) use the device at the same time on the user's Mac?
 - How stable are velocities over weeks, given that the guide recommends periodic recalibration?
   If the project tracks dynamics over time, it must record calibration events.

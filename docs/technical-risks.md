@@ -1,0 +1,21 @@
+# Technical risks
+
+Ordered roughly by (likelihood × impact) for the recommended direction. Each risk names the experiment or design measure that retires or contains it.
+
+| # | Risk | Likelihood | Impact | Evidence | Mitigation / retiring experiment |
+|---|---|---|---|---|---|
+| T1 | **Silent factual errors from dependencies**: renderer or parser produces wrong pitches or onsets while the display looks right | **Happened** (Verovio 6.3.0 drops key-signature accidentals from `**kern`) | High: wrong sound, wrong analysis | E1 | Pin versions; golden tests core vs renderer on every import (M1); the core, not the renderer, is the source of truth |
+| T2 | **Lens alignment errors**: analyses attached to the wrong beat (anacrusis, repeats, voltas, mn vs mc) | High | High: "disagreement" that is our bug | E2's first run (K. 284/iii: 0.07 → 0.71 after the fix); op. 10/3 key-shift anomaly | Measure-aligned addressing; per-piece hand checks; agreement sanity checks (identical figures in different keys flag conversion errors) |
+| T3 | **Annotation-standard quirks**: DCML `chord_tones` omit a suspended root; RomanText label persistence; converter artefacts | Medium | Medium | E3 (`ii(2)`), E2 (op. 10/3) | Unit tests per label grammar feature; keep raw labels alongside parsed values |
+| T4 | **Practice following fails on real practice** (fragments, restarts, errors) | High for online | High for mirrors | Rach3: offline aligners match about 40–60% of notes on real rehearsal MIDI | Segment-then-align offline; a "lost" state in any live cursor; simulator with ground truth; Rach3 validation |
+| T5 | **adsilent MIDI differs from assumptions** (no release velocity, switch-only CC64, odd note-off encoding, no MIDI in acoustic mode) | Unknown | Medium: some mirrors degrade (articulation, pedal) | Manual describes adsilent 2; the installed version is unverified | Configurable message profile in the simulator; hardware characterisation day; features that need missing data degrade gracefully |
+| T6 | **CoreMIDI multi-client or timestamp assumptions wrong** on the user's Mac | Low–medium | Medium | Reported, not verified | Hardware-day test: Chrome + daemon simultaneously; IAC loopback jitter test |
+| T7 | **Coverage gap**: most future pieces lack expert analyses | Certain (6 of 9 reference pieces) | Medium | repertoire.md | Automatic draft clearly labelled; user's analysis as a lens; masked-completion models (Research) |
+| T8 | **Score acquisition** for private arrangements (Tiersen, Rachmaninoff) | High | Medium | Anthology PDF only | Ask for source files; else Audiveris → MuseScore correction; budget hours per piece |
+| T9 | **LLM tutor hallucination or answer leakage** | High without guardrails | High (harms learning, per Bastani) | llm-symbolic-ai §1, §5 | Tools-only facts, claim checker, policy filter, gold set with transposed twins |
+| T10 | **Learning value does not materialise** (understanding ≠ playing) | Medium | High | Thin causal evidence (pedagogy §6) | Every lens leads to a probe; cold probes and n-of-1 designs measure change; instrument usage |
+| T11 | **Scope creep**: the lab becomes a place to not practise | Medium | High | — | Vertical slices; time-at-keyboard metric; default flows end at the piano |
+| T12 | **Licensing**: CC BY-NC-SA data, GPL tools (ms3), unlicensed repos (Sapp kern), copyrighted arrangements | Certain | Low for personal use; high if ever distributed | ecosystem B; repertoire.md | Keep provenance and licence per layer; no redistribution; record licences in `references.md` |
+| T13 | **Sampler latency or quality** in the browser undermines audio-motor coupling | Medium | Medium | Pedagogy P13 (< 20 ms) | Measure on the Mac early (M2); fall back to the silent system's own sound for live play |
+| T14 | **Python packaging on macOS** (arm64 wheels for verovio, partitura, parangonar, optional MLX/torch) | Low–medium | Low | uv lock is cross-platform; optional groups | Keep heavy ML optional; CI-like check by running `uv sync` on the Mac first |
+| T15 | **Research-code dependencies** go stale (pymatchmaker 0.x, analysisgnn, schema code) | Medium | Low (optional features) | Version history | Wrap behind interfaces; vendor small algorithms if needed |

@@ -49,6 +49,17 @@ Source index. Keys are cited in the other documents as [R12] etc.
 | R23 | E. Karystinaios, G. Widmer, "Roman Numeral Analysis with Graph Neural Networks: Onset-wise Predictions from Note-wise Features" (ChordGNN), ISMIR 2023. arXiv:2307.03544 | 2026-10-23 |
 | R24 | E. Karystinaios, J. Hentschel, M. Neuwirth, G. Widmer, "AnalysisGNN: Unified Music Analysis with Graph Neural Networks", CMMR 2025. arXiv:2509.06654 | 2026-10-23 |
 
+## Session 2 additions (2026-10-23)
+
+| Key | Source | Accessed |
+|---|---|---|
+| R29 | MAESTRO v3.0.0 metadata CSV. https://storage.googleapis.com/magentadata/datasets/maestro/v3.0.0/maestro-v3.0.0.csv (1,276 performances; searched for the reference repertoire) | 2026-10-23 |
+| R30 | (n)ASAP `metadata.csv`. https://raw.githubusercontent.com/CPJKU/asap-dataset/main/metadata.csv (BWV 846 present; Moonlight mvt. 1, op. 28/4, op. 66 absent) | 2026-10-23 |
+| R31 | DCML Distant Listening Corpus README (sub-corpus list). https://github.com/DCMLab/distant_listening_corpus | 2026-10-23 |
+| R32 | Verovio 4.5.1, 5.6.0, 6.0.0, 6.2.0, 6.3.0 (PyPI) tested on a minimal `**kern` case: 6.3.0 drops key-signature accidentals (own test, E1) | 2026-10-23 |
+| R33 | Karystinaios et al., "From Prediction to Collaboration: Interactive Symbolic Music Analysis" (RNHybrid), arXiv:2607.13587. Evaluation section re-read for datasets, metric and component accuracies. (Same paper as R16.) | 2026-10-23 |
+| — | **Research notes** carry their own primary-source lists: `research-notes/products-landscape.md`, `pedagogy-evidence.md`, `cognition-and-models.md`, `visualization-hci-improvisation.md`, `performance-capture-analysis.md`, `llm-symbolic-ai.md`. Key sources cited in the synthesis: Rach3 (Morsi et al., ISMIR 2025); Matchmaker (Park et al., ISMIR 2025, arXiv:2510.10087); TheGlueNote (Peter & Widmer, ISMIR 2024, arXiv:2408.04309); MSU-Bench (arXiv:2511.20697); CSyMR-Bench (arXiv:2601.11556); Kestin et al. 2025 (*Sci. Rep.*); Bastani et al. 2025 (*PNAS*); Duke, Simmons & Cash 2009 (*JRME*); Brandmeyer et al. 2011; Soderstrom & Bjork 2015; Cheung et al. 2019 (*Curr. Biol.*); Harrison & Pearce 2020 (*Psych. Rev.*); Lehne et al. 2013; Hamanaka et al. 2014 (GTTM database) | 2026-10-23 |
+
 ## Music theory (background, not re-checked)
 
 | Key | Source |

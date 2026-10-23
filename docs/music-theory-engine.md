@@ -58,6 +58,13 @@ Where they differ, each difference is a different *kind* of analytical question.
 
 [Analysis of bars confirmed from the two files. The musical glosses in the last column are ours, i.e. standard tonal theory.]
 
+### 3.1 Measured (experiments E1 and E2, 2026-10-23)
+
+- **Who is DT?** Other When in Rome files of the same type give "Dmitri Tymoczko", and for Corelli, Chopin and some Beethoven files, "**Dmitri Tymoczko and his computer**". The DT analyses are therefore partly computer-assisted. The Moonlight file itself has no analyst line.
+- **Time-weighted agreement BPS vs DT** (E2): key 0.78, chord pitch content 0.83, root 0.88, bass 0.83, **strict 0.66**.
+- **Note level** (E1): of 1,182 note onsets, 1,017 are chord tones for both analysts, 54 non-chord tones for both, and **85 (7.2%) change status depending on the analyst**. They sit in mm. 4, 13, 16, 18, 25, 35–37, 39–40, 47–52, 54, 58: the ambiguous places in the table above.
+- **Across corpora** (E2): human–human strict agreement ranges from about 0.9 (chorales, designed double annotation) to about 0.5–0.7 (Romantic piano). Disagreement is the normal condition of harmonic analysis, not an edge case.
+
 This table is close to a feature specification in itself:
 **"Analysis disagreement view"**: click a bar, see each expert's reading, see the notes that support each one highlighted on the score and keyboard, hear the passage with each reading's chord tones emphasised.
 Listed for evaluation in `feature-ideas.md` (Session 6).
@@ -78,7 +85,11 @@ That needs an addressing scheme that survives re-import, re-rendering and editin
 - **Repeats.** Written position ≠ performed position. Verovio's expansion map and DCML's `quarterbeats_all_endings` both address this, differently.
 - **Renderer IDs** (Verovio `xml:id`, OSMD object references) are generated at import and change when the source is re-exported.
 
-### Proposed scheme [speculative, validate in Session 7–8]
+### Proposed scheme [validated in part by E1; full data model in `architecture-options.md`]
+
+E1 showed the scheme works on Moonlight: 1,141/1,143 music21 notes have the same (measure, onset, pitch) address via Verovio.
+Two lessons were confirmed: tie continuations must be modelled explicitly, and renderer IDs are unstable (Verovio `**kern` IDs encode source line numbers).
+E2 showed the anacrusis problem is real: aligning by absolute time instead of (measure, offset) produced false disagreement.
 
 ```
 ScoreAddress  = (score_id, mc, onset_in_measure: Fraction, staff, voice?, pitch?)
