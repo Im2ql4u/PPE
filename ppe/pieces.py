@@ -17,7 +17,7 @@ from typing import Callable
 from ppe.analyses import import_dcml, import_romantext
 from ppe.mei_import import load_mei, mei_to_core
 from ppe.model import Note, Piece, Track
-from ppe.validate import crosscheck_music21
+from ppe.validate import crosscheck_music21, crosscheck_reference_notes
 
 ROOT = Path(__file__).resolve().parents[1]
 EXT = ROOT / "data" / "external"
@@ -63,6 +63,11 @@ class PieceSpec:
     known_discrepancy_measures: set[int] = field(default_factory=set)
     known_discrepancy_note: str = ""
     requires: str = ""  # human hint if the score file is missing
+    # A second encoding to compare note by note: for converted scores, the analysts' own note table
+    # (must agree); for other pieces, an independent edition (informational).
+    reference_notes: Path | None = None
+    reference_required: bool = False
+    reference_note: str = ""
 
 
 MOONLIGHT_WIR = WIR / "Piano_Sonatas" / "Beethoven,_Ludwig_van" / "Op027_No2(Moonlight)" / "1"
@@ -100,6 +105,12 @@ SPECS: dict[str, PieceSpec] = {
             "There music21's Humdrum importer drops sub-spines (m. 65: no left-hand notes at all; the source "
             "has G♯2, G♯1, B♯3, G♯2, G♯2) and shifts the whole-note bass of mm. 60–61 by a measure (B♯1/C♯2 "
             "swapped). Verovio (humlib) matches the source in every checked case; the core follows Verovio."
+        ),
+        reference_notes=EXT / "dcml_beethoven" / "notes" / "14-1.notes.tsv",
+        reference_note=(
+            "Compared with DCML's independent edition: 1,181 of 1,182 noteheads agree. The one difference is "
+            "m. 48, beat 1: B3 here, A3 in DCML. Both analyses read I (E major) there, which favours B, but "
+            "only an urtext scan can settle it."
         ),
     ),
     "bach-prelude-c": PieceSpec(
@@ -144,6 +155,9 @@ SPECS: dict[str, PieceSpec] = {
             TrackSpec("lower", "Left hand", "Lower staff", lambda n: n.staff == 2),
         ],
         requires="Needs MuseScore to convert the DCML file: see docs/mac-setup.md (`python -m ppe convert`).",
+        reference_notes=EXT / "dcml_debussy_bergamasque" / "notes" / "l075-03_suite_clair.notes.tsv",
+        reference_required=True,
+        reference_note="The converted MusicXML must match DCML's note table (the score the labels were written on).",
     ),
 }
 
@@ -175,14 +189,22 @@ def build_piece(pid: str) -> Piece:
     xcheck = crosscheck_music21(notes, spec.score)
     unexplained = [d for d in xcheck["only_in_core"] + xcheck["only_in_music21"]
                    if int(d.split()[0][1:]) not in spec.known_discrepancy_measures]
+    reference = None
+    if spec.reference_notes is not None and spec.reference_notes.exists():
+        reference = crosscheck_reference_notes(notes, spec.reference_notes)
+        reference["note"] = spec.reference_note
+        reference["required"] = spec.reference_required
     piece.validation = {
         "mei": mei_report,
         "crosscheck": xcheck,
         "unexplained_discrepancies": unexplained,
         "known_discrepancy_note": spec.known_discrepancy_note,
+        "reference": reference,
         "analysis_issues": {an.id: an.issues for an in piece.analyses},
         "alignment": {an.id: alignment_check(piece, an.id) for an in piece.analyses},
     }
+    if reference and spec.reference_required and reference["agreement_rate"] < 0.99:
+        raise RuntimeError(f"{pid}: score differs from the annotated reference: {reference['only_in_core'][:5]} / {reference['only_in_reference'][:5]}")
     if unexplained:
         raise RuntimeError(f"{pid}: core and music21 disagree outside documented measures: {unexplained[:10]}")
     if mei_report["verovio_midi_vs_mei_pitch_mismatches"]:

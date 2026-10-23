@@ -9,6 +9,31 @@ from ppe.model import Note
 from ppe.score_import import import_measures, import_notes, load_score
 
 
+def crosscheck_reference_notes(core: list[Note], notes_tsv: Path) -> dict:
+    """Compare the core with a DCML note table (the score the analysts annotated), by
+    (measure number, offset within the measure in quarters, MIDI pitch), including tied continuations."""
+    import ms3
+    from fractions import Fraction
+
+    t = ms3.load_tsv(notes_tsv)
+    if "gracenote" in t.columns:
+        t = t[t.gracenote.isna()]
+    ref = Counter((int(r.mn), Fraction(str(r.mn_onset)) * 4, int(r.midi)) for _, r in t.iterrows())
+    mine = Counter((n.measure, n.offset, n.midi) for n in core)
+    both = ref & mine
+
+    def fmt(c: Counter) -> list[str]:
+        return [f"m{m} +{off} midi {p}" + (f" ×{k}" if k > 1 else "") for (m, off, p), k in sorted(c.items())]
+
+    return {
+        "reference": str(notes_tsv.name),
+        "core_notes": sum(mine.values()), "reference_notes": sum(ref.values()),
+        "agreeing": sum(both.values()),
+        "agreement_rate": round(sum(both.values()) / max(1, sum(ref.values())), 4),
+        "only_in_core": fmt(mine - ref), "only_in_reference": fmt(ref - mine),
+    }
+
+
 def crosscheck_music21(core: list[Note], source: Path) -> dict:
     """Compare (measure, offset, MIDI) multisets between the core and music21's own parse.
 

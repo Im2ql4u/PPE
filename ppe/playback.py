@@ -226,9 +226,28 @@ def substitute(piece: Piece, events: list[PlayNote], label: Label, target_pitche
     return out, moves
 
 
+def pedal_by_harmony(events: list[PlayNote], piece: Piece, analysis_id: str, end: Fraction) -> None:
+    """Simulate a sustain pedal changed at every harmony boundary of an analysis: each note sounds on
+    to the end of its harmony, or until the same key is struck again."""
+    an = piece.analysis(analysis_id)
+    by_midi: dict[int, list[PlayNote]] = {}
+    for e in sorted(events, key=lambda e: e.onset):
+        by_midi.setdefault(e.midi, []).append(e)
+    for same in by_midi.values():
+        for i, e in enumerate(same):
+            lab = an.label_at(e.onset)
+            if lab is None:
+                continue
+            stop = min(lab.end, end)
+            if i + 1 < len(same):
+                stop = min(stop, same[i + 1].onset)
+            if stop - e.onset > e.duration:
+                e.duration = stop - e.onset
+
+
 def build(piece: Piece, *, start: Fraction, end: Fraction, mode: str = "original", analysis: str | None = None,
           tracks: set[str] | None = None, transpose: int = 0,
-          substitution: tuple[Label, list[str]] | None = None) -> tuple[list[PlayNote], dict]:
+          substitution: tuple[Label, list[str]] | None = None, pedal: bool = False) -> tuple[list[PlayNote], dict]:
     if mode not in MODES:
         raise ValueError(f"unknown mode {mode}")
     if MODES[mode]["needs_analysis"] and not analysis:
@@ -252,6 +271,9 @@ def build(piece: Piece, *, start: Fraction, end: Fraction, mode: str = "original
         label, target = substitution
         ev, moves = substitute(piece, ev, label, target)
         info["moves"] = moves
+    if pedal and analysis and mode not in ("progression",):
+        pedal_by_harmony(ev, piece, analysis, end)
+        info["pedal"] = f"Sustain pedal changed at each harmony of {analysis}."
     if transpose:
         for e in ev:
             e.midi += transpose

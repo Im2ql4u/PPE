@@ -154,7 +154,11 @@ export function Score() {
     const el = first && geom.noteEl.get(first.id);
     if (!el) return;
     const r = el.getBoundingClientRect(), w = wrap.current.getBoundingClientRect();
-    if (r.top < w.top + 40 || r.bottom > w.bottom - 120) el.scrollIntoView({ block: "center", behavior: "smooth" });
+    if (r.top < w.top + 40 || r.bottom > w.bottom - 120) {
+      // jump for long distances (a smooth scroll can be interrupted by re-layout), glide for short steps
+      const far = Math.abs(r.top - (w.top + w.height / 2)) > w.height * 1.2;
+      el.scrollIntoView({ block: "center", behavior: far ? "instant" : "smooth" });
+    }
   }, [selection?.start, geom]);
 
   // follow playback
@@ -193,6 +197,7 @@ export function Score() {
   return html`
     <div class="score-wrap" ref=${wrap} onClick=${onClick} onDblClick=${onDblClick}>
       <div class=${"paper" + (busy ? " busy" : "")} ref=${paper}>
+        ${!svgVersion && html`<div class="engraving">Engraving the score…</div>`}
         <div class="svg-host" ref=${host}></div>
         ${geom && html`<${Lanes} piece=${piece} geom=${geom} lenses=${lenses} selection=${selection} />`}
       </div>

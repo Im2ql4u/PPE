@@ -18,9 +18,11 @@ SOURCES = {
         # analyses and metadata only; scores are large and fetched per piece when needed
         ["/Corpus/**/*.txt", "/Corpus/**/remote.json", "/Corpus/**/*.rntxt"],
     ),
-    "dcml_beethoven": ("https://github.com/DCMLab/beethoven_piano_sonatas.git", None),
+    # Only what the app and the experiments use (the full repositories are ~650 MB).
+    "dcml_beethoven": ("https://github.com/DCMLab/beethoven_piano_sonatas.git",
+                       ["/notes/14-*", "/harmonies/*", "/measures/14-*", "/MS3/14-1.mscx"]),
     "dcml_debussy_bergamasque": ("https://github.com/DCMLab/debussy_suite_bergamasque.git", None),
-    "sapp_beethoven": ("https://github.com/craigsapp/beethoven-piano-sonatas.git", None),
+    "sapp_beethoven": ("https://github.com/craigsapp/beethoven-piano-sonatas.git", ["/kern/sonata14-*.krn"]),
 }
 
 

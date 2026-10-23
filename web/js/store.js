@@ -18,6 +18,7 @@ let state = {
   tracks: [], // empty = all
   speed: 1,
   loop: false,
+  pedal: true, // sustain pedal changed at each harmony of the primary analysis
   playing: false,
   playingIds: new Set(),
   playingMidis: new Set(),

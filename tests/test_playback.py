@@ -92,6 +92,20 @@ def test_candidates_are_ranked_by_voice_leading(moonlight):
     assert all(frozenset(x["pitches"]) for x in c)
 
 
+def test_pedal_sustains_within_the_harmony_only(moonlight):
+    dry, _ = build(moonlight, start=Fraction(0), end=Fraction(16), mode="original")
+    wet, info = build(moonlight, start=Fraction(0), end=Fraction(16), mode="original", analysis="BPS", pedal=True)
+    assert "pedal" in info
+    bps = moonlight.analysis("BPS")
+    for d, w in zip(dry, wet):
+        assert (d.onset, d.midi) == (w.onset, w.midi) and w.duration >= d.duration
+        lab = bps.label_at(w.onset)
+        assert w.onset + w.duration <= lab.end  # never carried into the next harmony
+    # the first triplet note G#3 now rings to the next G#3 attack, a triplet later
+    first = next(w for w in wet if w.midi == 56)
+    assert first.duration == 1
+
+
 def test_minimal_voice_leading():
     total, moves = minimal_voice_leading([7, 11, 2, 5], [0, 4, 7])  # G7 -> C
     assert total == 4  # B->C (+1), D->C (-2), F->E (-1), G=G

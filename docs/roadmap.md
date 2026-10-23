@@ -12,7 +12,22 @@ Status legend: ✅ done · ▶ next · ○ planned.
 Research notes (6), experiments E1–E3, repertoire audit, synthesis documents.
 Key de-risking results: musical addresses work (E1); expert disagreement is measurable (E1, E2); deterministic reductions from labels work (E3); Verovio regression found and pinned (E1).
 
-## M1. Piece packs: the symbolic core ▶
+## Status after implementation milestone 1 (2026-10-23)
+
+- **M1 done**: piece packs with cross-checked notation, aligned expert layers, alignment self-checks, golden and property tests (47 pytest tests).
+- **M2 done**: the browser Passage Lab: score with analysis lanes, selection, keyboard, readings and comparisons, reductions, transposition, playback, deep links. 12 browser interaction checks.
+- **M3 partly done**: rule-based chord substitution with A/B listening. *Not yet*: predict-then-reveal probes, minimal-pair ABX, transposition probe with MIDI input, learner model.
+- Validation findings, library defects and corrected research numbers: `docs/validation.md`.
+
+### What should come next
+
+1. **On the Mac:** build *Clair de lune* (`docs/mac-setup.md` §4) and report the reference-check result; settle the Moonlight m. 48 variant against a scan.
+2. **M3 probes**: predict-then-reveal on the lens panel (hear → commit → reveal), minimal-pair ABX from the substitution engine. The pieces exist; this is mostly UI and a grader.
+3. **Your own analysis as a lens** (`kind="user"`): type a Roman numeral for a span; it appears as a lane and is compared like any other reading.
+4. **M4 groundwork without the piano**: a Web MIDI input path (Chrome on the Mac) showing played notes on the keyboard and score, plus the fake-piano simulator.
+5. Small debts: Moonlight edition variant; grace notes (Clair de lune); more pieces from the anthology with expert data (BWV 846 done).
+
+## M1. Piece packs: the symbolic core ✅
 
 **Goal:** a CLI and Python package that turns a score plus any available analyses into a versioned, tested "piece pack".
 
@@ -31,7 +46,7 @@ Key de-risking results: musical addresses work (E1); expert disagreement is meas
 - (c) Every analysis label lands on the correct beat in 3 hand-checked bars per piece.
 - (d) Property tests pass: transposition invertible; reductions only remove notes.
 
-## M2. Passage Lab v0: lenses + transforms in the browser ○
+## M2. Passage Lab v0: lenses + transforms in the browser ✅
 
 **Goal:** a single-page app where the user selects any passage and sees, hears and plays it through lenses and transforms.
 

@@ -170,6 +170,7 @@ export async function playSelection(opts = {}) {
     tracks: st.tracks.length ? st.tracks : null,
     transpose: st.transpose,
     substitution: opts.substitution && lab ? { label: lab.id, figure: opts.substitution } : null,
+    pedal: st.pedal && !!st.primary,
   };
   if (sel.kind === "note" || sel.kind === "chord") {
     // a single note or vertical: hear it with its harmony's texture? Keep it literal: the selected notes.
@@ -207,6 +208,7 @@ export function stopPlayback() {
 export const setMode = (mode) => setState({ mode });
 export const setSpeed = (speed) => setState({ speed });
 export const toggleLoop = () => setState((s) => ({ loop: !s.loop }));
+export const togglePedal = () => setState((s) => ({ pedal: !s.pedal }));
 export function setTranspose(n) {
   const t = Math.max(-6, Math.min(6, n));
   if (t === getState().transpose) return;

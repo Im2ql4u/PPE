@@ -64,6 +64,8 @@ def _family(rn: roman.RomanNumeral, figure: str) -> str:
 def _degree_family(alone: str, rn: roman.RomanNumeral) -> str:
     if alone == "VII" and (rn.isDiminishedTriad() or rn.isDiminishedSeventh() or rn.isHalfDiminishedSeventh()):
         return "leading-tone"
+    if alone == "I" and rn.inversion() == 2 and rn.seventh is None:
+        return "tonic six-four"
     if alone == "V" and rn.inversion() == 2 and rn.seventh is None:
         return "dominant"
     return {"I": "tonic", "II": "predominant", "IV": "predominant", "V": "dominant",
@@ -329,6 +331,8 @@ def _dcml_family(r) -> str:
         return "mixture"
     if str(r.chord_type) in ("o", "o7", "%7") and num.upper() == "VII":
         return "leading-tone"
+    if num.upper() == "I" and str(r.figbass) == "64":
+        return "tonic six-four"
     return {"I": "tonic", "II": "predominant", "IV": "predominant", "V": "dominant", "VI": "submediant",
             "III": "mediant", "VII": "subtonic"}.get(num.upper(), "other")
 

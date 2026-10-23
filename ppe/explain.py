@@ -21,6 +21,8 @@ DEGREE_NAME = {1: "tonic", 2: "supertonic", 3: "mediant", 4: "subdominant", 5: "
 FAMILY = {
     "tonic": ("Home.",
               "The tonic chord is built on the first degree of the key. It is where the music feels at rest; most phrases begin or end here."),
+    "tonic six-four": ("The tonic over its fifth: usually not a resting point.",
+                       "A tonic triad in second inversion (with the fifth in the bass) rarely feels like home. Most often it decorates the dominant (the cadential six-four, whose sixth and fourth fall to the dominant's fifth and third), or it appears over a held or passing bass. Analysts differ in whether they label it as a tonic chord or as part of the dominant."),
     "dominant": ("Tension that wants to resolve home.",
                  "The dominant is built on the fifth degree. Its third is the leading tone, a semitone below the tonic, which pulls upward; with a seventh added, the pull becomes stronger still. Dominants usually resolve to the tonic."),
     "predominant": ("Preparation: moving away from home, toward the dominant.",

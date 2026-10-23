@@ -16,6 +16,10 @@
 | ID scheme for `**kern` input | IDs encode the **source line and field** (`note-L23F2`). Stable under in-place edits, but **every later ID shifts if a line is inserted**. Confirms that renderer IDs can't be the project's primary key (see `docs/music-theory-engine.md` §4). |
 | Chord-tone status of each note under each expert analysis | 1,017 chord tone for both · 54 non-chord tone for both · **85 (7.2%) analysts disagree** · 26 unlabelled. Disputed notes fall in mm. 4, 13, 16, 18, 25, 35–37, 39–40, 47–52, 54, 58. |
 
+> **Correction (implementation, 2026-10-23).** The chord-tone counts above used music21's reading of DT's
+> `V9[b9]`, which spells the ninth as A♭ (enharmonically the root) instead of A♮. With correct spelling,
+> **77** notes (not 85) change status between the analysts. See `docs/validation.md` §2 and §4.
+
 ## Finding: Verovio 6.3.0 regression (silent wrong pitches)
 
 With Verovio **6.3.0** (latest on PyPI and npm, 2026-08-19), `**kern` input loses accidentals implied by the key signature.

@@ -26,16 +26,29 @@ FIFTHS_MINOR = ["A♭", "E♭", "B♭", "F", "C", "G", "D", "A", "E", "B", "F♯
 app = FastAPI(title="Passage Laboratory")
 
 
-@functools.lru_cache(maxsize=8)
-def get_piece(pid: str):
+def _pack_mtime(pid: str) -> float:
     if pid not in pieces.built():
         raise HTTPException(404, f"piece '{pid}' is not built; run `python -m ppe build`")
+    return (pieces.pack_dir(pid) / "piece.pkl").stat().st_mtime
+
+
+@functools.lru_cache(maxsize=8)
+def _load(pid: str, mtime: float):
     return pieces.load(pid)
 
 
 @functools.lru_cache(maxsize=8)
+def _load_json(pid: str, mtime: float) -> dict:
+    return piece_json(_load(pid, mtime))
+
+
+def get_piece(pid: str):
+    """The built piece; reloaded automatically when its pack is rebuilt."""
+    return _load(pid, _pack_mtime(pid))
+
+
 def get_piece_json(pid: str) -> dict:
-    return piece_json(get_piece(pid))
+    return _load_json(pid, _pack_mtime(pid))
 
 
 @app.get("/api/pieces")
@@ -105,6 +118,7 @@ class PlaybackReq(BaseModel):
     tracks: list[str] | None = None
     transpose: int = 0
     substitution: Substitution | None = None
+    pedal: bool = False
 
 
 @app.post("/api/pieces/{pid}/playback")
@@ -122,7 +136,8 @@ def playback(pid: str, req: PlaybackReq):
     try:
         events, info = build_playback(p, start=_frac(req.start), end=_frac(req.end), mode=req.mode,
                                       analysis=req.analysis, tracks=set(req.tracks) if req.tracks else None,
-                                      transpose=req.transpose, substitution=sub)
+                                      transpose=req.transpose, substitution=sub,
+                                      pedal=req.pedal and bool(req.analysis))
     except ValueError as e:
         raise HTTPException(400, str(e)) from e
     return {"events": [e.to_json() for e in events], "info": info, "qpm": p.tempo_qpm}

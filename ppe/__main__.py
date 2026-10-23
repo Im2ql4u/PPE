@@ -25,6 +25,11 @@ def cmd_fetch(_args) -> None:
 
 
 def find_musescore() -> str | None:
+    import os
+
+    env = os.environ.get("MUSESCORE")
+    if env and Path(env).exists():
+        return env
     for c in ["mscore", "mscore4portable", "musescore", "MuseScore4", "MuseScore3",
               "/Applications/MuseScore 4.app/Contents/MacOS/mscore",
               "/Applications/MuseScore 3.app/Contents/MacOS/mscore",
@@ -46,6 +51,7 @@ def cmd_convert(_args) -> None:
     target = out / "l075-03_suite_clair.musicxml"
     print(f"{ms} -o {target} {src}")
     subprocess.run([ms, "-o", str(target), str(src)], check=True)
+    print("converted. Next: uv run python -m ppe build clair-de-lune")
 
 
 def cmd_build(args) -> None:

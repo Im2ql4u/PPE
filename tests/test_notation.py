@@ -42,6 +42,12 @@ def test_moonlight_core_agrees_with_independent_parser(moonlight):
     assert measures <= {60, 61, 63, 65, 66}
 
 
+def test_moonlight_matches_an_independent_edition(moonlight):
+    ref = moonlight.validation["reference"]
+    assert ref["agreeing"] == ref["reference_notes"] - 1  # one known variant
+    assert ref["only_in_core"] == ["m48 +0 midi 59"] and ref["only_in_reference"] == ["m48 +0 midi 57"]
+
+
 def test_bach_core_agrees_completely(bach):
     assert bach.validation["crosscheck"]["agreement_rate"] == 1.0
 

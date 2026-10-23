@@ -9,11 +9,10 @@ This file is the **entry point for every working session**. Read "Resume here" f
 
 ## Resume here
 
-**Status (2026-10-23):** research sessions 1–2 complete. Synthesis written.
+**Status (2026-10-23):** research complete; **implementation milestone 1 done** (the Passage Lab vertical slice: roadmap M1 + M2 and parts of M3). See the root `README.md`, `docs/app-architecture.md` and `docs/validation.md`.
 
-- Start with `synthesis.md`, then `product-concepts.md`.
-- Recommended direction: the **Passage Laboratory** (lenses, transforms, probes, mirrors).
-- Recommended next step: **roadmap M1** (piece packs) plus the thinnest **M2** page, once the user approves moving from research to building.
+- Runs on the user's Mac per `docs/mac-setup.md`. *Clair de lune* is built there (needs MuseScore).
+- Next: see "What should come next" in `roadmap.md`.
 
 **If continuing research instead of building**, the highest-value open items are:
 

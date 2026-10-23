@@ -75,6 +75,8 @@ def piece_json(piece: Piece) -> dict:
             "crosscheck_agreement": v.get("crosscheck", {}).get("agreement_rate"),
             "independent_parser": v.get("crosscheck", {}).get("independent_parser"),
             "known_discrepancy_note": v.get("known_discrepancy_note"),
+            "reference": {k: (v.get("reference") or {}).get(k) for k in ("agreement_rate", "agreeing", "reference_notes", "note")}
+            if v.get("reference") else None,
             "alignment": v.get("alignment"),
             "analysis_issues": v.get("analysis_issues"),
         },

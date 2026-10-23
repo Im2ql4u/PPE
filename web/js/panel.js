@@ -3,7 +3,7 @@ import { useState } from "preact/hooks";
 import htm from "htm";
 import {
   harmonyOf, playSelection, select, selectLabel, setMode, setPrimary, setSpeed, setTranspose, stopPlayback,
-  toggleLoop, toggleTrack,
+  toggleLoop, togglePedal, toggleTrack,
 } from "./actions.js";
 import { useStore } from "./store.js";
 
@@ -127,6 +127,7 @@ function Listen({ piece }) {
   const mode = useStore((s) => s.mode);
   const playing = useStore((s) => s.playing);
   const loop = useStore((s) => s.loop);
+  const pedal = useStore((s) => s.pedal);
   const speed = useStore((s) => s.speed);
   const tracks = useStore((s) => s.tracks);
   const primary = useStore((s) => s.primary);
@@ -138,9 +139,11 @@ function Listen({ piece }) {
       <h3>Listen</h3>
       <div class="transport">
         <button class="play" onClick=${() => (playing ? stopPlayback() : playSelection({ restart: true }))}>
-          ${playing ? "■ Stop" : selection ? "▶ Play selection" : "▶ Play from the start"}
+          ${playing ? "■ Stop" : selection ? "▶ Play" : "▶ Play all"}
         </button>
         <button class=${"toggle" + (loop ? " on" : "")} onClick=${toggleLoop} title="Loop (L)">Loop</button>
+        ${piece.analyses.length > 0 && html`<button class=${"toggle" + (pedal ? " on" : "")} onClick=${togglePedal}
+          title=${`Sustain pedal, changed at each harmony of ${primary}. A simulation: the score's own pedal marks are not used.`}>Pedal</button>`}
         <select class="speed" value=${speed} onChange=${(e) => setSpeed(Number(e.target.value))} title="Speed">
           ${[0.5, 0.67, 0.8, 1, 1.25].map((v) => html`<option value=${v}>${v === 1 ? "1×" : `${v}×`}</option>`)}
         </select>
@@ -208,6 +211,7 @@ function Provenance({ piece }) {
             ${v.alignment?.[a.id] && html`<br /><span class="muted">Alignment check: ${(v.alignment[a.id]["0"] * 100).toFixed(1)}% of notes are chord tones at the analysis' position (vs ≤${(Math.max(v.alignment[a.id]["-1 beat"], v.alignment[a.id]["+1 beat"]) * 100).toFixed(0)}% when shifted by a beat).</span>`}
             ${a.issues.length > 0 && html`<br /><span class="warn">Data notes: ${a.issues.join(" · ")}</span>`}</dd>`)}
           <dt>Notation check</dt><dd>${(v.crosscheck_agreement * 100).toFixed(1)}% of notes agree between Verovio and an independent ${v.independent_parser} parse.${v.known_discrepancy_note ? html`<br /><span class="muted">${v.known_discrepancy_note}</span>` : ""}</dd>
+          ${v.reference && html`<dt>Edition check</dt><dd>${v.reference.agreeing} of ${v.reference.reference_notes} noteheads agree with a second encoding. <span class="muted">${v.reference.note}</span></dd>`}
           ${piece.comparisons.map((c) => html`<dt>${c.a} vs ${c.b}</dt><dd>Same reading for ${(c.summary.strict_agreement * 100).toFixed(0)}% of the piece's duration; same chord in a different key ${(c.summary.fractions.key_frame * 100).toFixed(0)}%; an extra chord tone ${(c.summary.fractions.extension * 100).toFixed(0)}%.</dd>`)}
         </dl>`}
     </section>`;

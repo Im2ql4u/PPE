@@ -37,6 +37,13 @@
 | **All kept pairs** | 329 | 0.90 | 0.89 | **0.79** | 0.85 |
 | *Moonlight mvt. 1: BPS (Chen & Su) vs DT* | 1 | 0.78 | 0.83 | **0.66** | |
 
+> **Correction (implementation, 2026-10-23).** music21 misreads bracketed alterations: `V9[b9]` gets a
+> doubly-flattened ninth (A♭ in C♯ minor, the root's enharmonic twin), and `[b9b5]` is garbled. This made
+> Tymoczko's `V9[b9]` look identical to `V7`. The script now uses the app's corrected reading
+> (`ppe.analyses._bracket_pitches`). Re-run: overall strict agreement unchanged at 0.79; Corelli 0.64 → 0.67,
+> Chopin 0.53 → 0.54; **Moonlight 0.66 → 0.625** (0.641 in the app, which also applies RomanText's
+> label persistence through bars without a label line). Details: `docs/validation.md` §4.
+
 ## Interpretation (with caveats)
 
 1. **Expert agreement on full Roman-numeral readings is far from 100%.** It ranges from about 0.9 (chorales, a designed double annotation) down to 0.5–0.6 (Chopin mazurkas, chromatic Romantic repertoire). Key-relative disagreement (tonicisation vs. modulation) is a large component: compare the "key" and "chord pcs" columns.

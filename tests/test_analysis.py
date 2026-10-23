@@ -84,6 +84,12 @@ def test_explanation_names_the_lowered_degree(moonlight):
     assert "lowered second degree" in text and "D–F♯–A" in text
 
 
+def test_second_inversion_tonic_is_not_explained_as_home(moonlight):
+    lab = moonlight.analysis("BPS").label_at(moonlight.measure(33).onset)
+    assert lab.figure == "i64" and lab.family == "tonic six-four"
+    assert "not a resting point" in explain_label(lab)["gist"]
+
+
 def test_dcml_import_keeps_suspended_roots_structural():
     tsv = EXT / "dcml_debussy_bergamasque" / "harmonies" / "l075-03_suite_clair.harmonies.tsv"
     mtsv = EXT / "dcml_debussy_bergamasque" / "measures" / "l075-03_suite_clair.measures.tsv"

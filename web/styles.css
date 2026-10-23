@@ -52,10 +52,11 @@ code { font: 12.5px ui-monospace, "SF Mono", Menlo, Consolas, monospace; backgro
 
 /* ── stage ──────────────────────────────────────────────────────────── */
 .stage { display: grid; grid-template-columns: 1fr var(--panel-w); min-height: 0; }
-.score-wrap { overflow: auto; padding: 22px 26px 60px; min-width: 0; scroll-behavior: smooth; }
+.score-wrap { overflow: auto; padding: 22px 26px 60px; min-width: 0; }
 .paper { position: relative; background: var(--paper); border-radius: 3px; margin: 0 auto; padding: 8px 6px 20px;
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 8px 30px -12px rgba(60, 40, 10, 0.18); transition: opacity 0.2s; }
 .paper.busy { opacity: 0.55; }
+.engraving { padding: 120px 0; text-align: center; font: italic 17px var(--serif); color: var(--ink-3); }
 .svg-host svg { display: block; width: 100%; height: auto; }
 .svg-host g.note { cursor: pointer; }
 .svg-host g.note:hover { fill: #5b7fd8; }
